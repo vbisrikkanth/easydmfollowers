@@ -64,11 +64,11 @@ async function insertUsersInDB(followers,cursor_str){
    //Also update the status of the sync status table
     const status = await currentUser.getSyncStatuses({
         where:{
-            type:"FL"
+            type:"FL" // Indicates the type of the sync as FL => Follow List
         }
     });
     if(cursor_str === "0"){
-        status[0].status ="D";
+        status[0].status ="D"; // Mark this as done
     } 
     status[0].cursor_str =cursor_str;
     status[0].save();
@@ -118,7 +118,7 @@ async function createTwitterUser(){
         screen_name:"Current User"
     });
     const syncStatus = await SyncStatus.create({
-         status:"P",
+         status:"P",  // Mark this as in Progress
          type:"FL",
          cursor_str:"-1"
      });
