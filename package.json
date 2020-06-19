@@ -1,12 +1,12 @@
 {
-  "name": "twitter-followers-dm",
+  "name": "edmf-core",
   "version": "1.0.0",
-  "description": "Test",
-  "main": "index.js",
+  "description": "Easy DM Followers Core",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Praveen N",
   "license": "ISC",
   "dependencies": {
     "sequelize": "^5.21.13",

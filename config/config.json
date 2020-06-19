@@ -1,0 +1,8 @@
+{
+  "development": {
+    "dialect": "sqlite",
+    "storage": "jupiter.sqlite"
+  }
+}
+
+

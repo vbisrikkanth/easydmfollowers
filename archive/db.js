@@ -1,64 +1,8 @@
-const { Sequelize,DataTypes  } = require('sequelize');
-
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: 'database.sqlite',
-  logging: console.log
-});
-
-const User = sequelize.define('User', {
-  // Model attributes are defined here
-  id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    primaryKey: true
-  },
-  id_str: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  screen_name: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  location: {
-    type: DataTypes.STRING
-  },
-  followers_count:{
-    type: DataTypes.INTEGER
-  },
-  friends_count:{
-    type: DataTypes.INTEGER
-  },
-  statuses_count:{
-    type: DataTypes.INTEGER
-  },
-  verified:{
-    type: DataTypes.BOOLEAN
-  }
-}, {
-  // Other model options go here
-});
-
-const SyncStatus = sequelize.define('SyncStatus', {
-  status: {
-    type: DataTypes.STRING
-  },
-  cursor_str: {
-    type: DataTypes.STRING
-  },
-  type: {
-    type: DataTypes.STRING
-  }
-});
-
-User.hasMany(SyncStatus);
-SyncStatus.belongsTo(User);
-User.belongsToMany(User,{as:'Follower',through:'Followers'});
-
+const db = require('./models');
+const { Users } = db;
 async function insertUsersInDB(followers,cursor_str){
     const currentUser = await getCurrentUser();
-    const followersInDB = await User.bulkCreate(followers,{ updateOnDuplicate: ["screen_name", "location","followers_count","friends_count","statuses_count","verified"] })
+    const followersInDB = await Users.bulkCreate(followers,{ updateOnDuplicate: ["screen_name", "location","followers_count","friends_count","statuses_count","verified","protected","description", "listed_count","favourites_count","statuses_count","default_profile","default_profile_image"] })
     currentUser.addFollower(followersInDB);
 
    //Also update the status of the sync status table
@@ -78,7 +22,7 @@ async function insertUsersInDB(followers,cursor_str){
 
 //Debug function to print the followers and the sync status
 async function getFollowers(){
-    const currentUser = await User.findOne(
+    const currentUser = await Users.findOne(
         {
             where:{
                 id:1
@@ -101,7 +45,7 @@ async function getFollowers(){
 
 //Get the me user. Not sure if there's an API - so creating userID 1 for time being
 async function getCurrentUser(){
-    const currentUser = await User.findOne({
+    const currentUser = await Users.findOne({
         where:{
             id:1
         }
@@ -109,13 +53,13 @@ async function getCurrentUser(){
     return currentUser;
 }
 
-//Inser Current User as 1. Not sure if there's an API - so creating userID 1 for time being
+//Inser Current Users as 1. Not sure if there's an API - so creating userID 1 for time being
 async function createTwitterUser(){
     await sequelize.sync({force:true});
-    const currentUser = await User.create({
+    const currentUser = await Users.create({
         id:1,
         id_str:"1",
-        screen_name:"Current User"
+        screen_name:"Current Users"
     });
     const syncStatus = await SyncStatus.create({
          status:"P",  // Mark this as in Progress
@@ -125,7 +69,7 @@ async function createTwitterUser(){
     currentUser.addSyncStatus(syncStatus);
 }
 
-//createTwitterUser();
+createTwitterUser();
 //getFollowers();
 
 exports.getCurrentUser = getCurrentUser;
