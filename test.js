@@ -1,4 +1,4 @@
-const EasyDMCore = require('edmf-core');
+const EasyDMCore = require('./src/index');
 
 const easyDMCore = new EasyDMCore("jupiter1.sqlite");
 async function test(){
