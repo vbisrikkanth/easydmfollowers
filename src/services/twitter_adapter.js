@@ -46,7 +46,7 @@ class TwitterAdapter {
             const followers = await this.client.get("followers/list", {
                 cursor,
                 count: 200,
-                screen_name: "d3js_org"
+                // screen_name: "d3js_org"
             });
 
             cursor = followers.next_cursor_str;
