@@ -1,15 +1,12 @@
-const db = require('./models');
-
-class EasyDMCore{
-    constructor(sqliteLocation){
-        this.sqliteLocation = sqliteLocation;
-        this.db = db(sqliteLocation);
-    }
-
-    async setProperty(property, value){
-        // console.log(this.db)
-        return await this.db.StateVariables.create({property,value})
+import { initDB } from './models'
+import TwitterAdapter from './services/twitter_adapter';
+class EasyDMCore {
+    constructor(connectionString) {
+        this.connectionString = connectionString;
+        this.db = initDB(connectionString);
+        this.twitterAdapter = new TwitterAdapter();
+        this.TwitterAdapter = TwitterAdapter;
     }
 }
 
-module.exports = EasyDMCore;
+export default EasyDMCore;

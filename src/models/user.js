@@ -1,7 +1,12 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const Users = sequelize.define('Users', {
-    id_str: DataTypes.STRING,
+  const User = sequelize.define('User', {
+    id_str: {
+      allowNull: false,
+      unique: true,
+      primaryKey: true,
+      type: DataTypes.STRING
+    },
     name: DataTypes.STRING,
     screen_name: DataTypes.STRING,
     location: DataTypes.STRING,
@@ -16,6 +21,8 @@ module.exports = (sequelize, DataTypes) => {
     default_profile: DataTypes.BOOLEAN,
     default_profile_image: DataTypes.BOOLEAN
   }, {});
-  Users.associate = function (models) {};
-  return Users;
+  User.associate = function (models) {
+    // User.belongsToMany(models.Campaign, { through: 'CampaignUsers', foreignKey: 'user_id', otherKey: 'campaign_id' });
+  };
+  return User;
 };

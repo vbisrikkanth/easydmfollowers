@@ -1,14 +1,24 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('StateVariables', {
-      property: {
+    return queryInterface.createTable('FollowersJobs', {
+      id: {
         allowNull: false,
+        autoIncrement: true,
         primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      cursor: {
         type: Sequelize.STRING
       },
-      value: {
-        type: Sequelize.STRING
+      status: {
+        type: Sequelize.INTEGER
+      },
+      scheduled: {
+        type: Sequelize.DATE
+      },
+      ran_at: {
+        type: Sequelize.DATE
       },
       createdAt: {
         allowNull: false,
@@ -21,6 +31,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('StateVariables');
+    return queryInterface.dropTable('FollowersJobs');
   }
 };

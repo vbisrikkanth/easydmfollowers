@@ -3,3 +3,5 @@
 npm-debug.log
 .npmrc
 *.sqlite
+dist/
+log/
