@@ -77,10 +77,10 @@ async function test2(){
 
 async function test3(){
     easyDMCore.TwitterAdapter.setTwitterKeys({
-        consumer_key : "lBGkmmeLPsWrmX1TZstjLKzYj",
-        consumer_secret: "OzoHrNGqQp34AfuZb3miiDQIt0mOMg2VHffMNgxXaSxbpPnbUa",
-        access_token_key: "1274023999672946689-rIe0iZEUZp1DEx3sBTedbk9ZIeJI4y",
-        access_token_secret: "sg3Q88Bn5ioCetz2hbLnzfCvQDlEBpQxgrTJXkjKaM5MU"
+        consumer_key : "",
+        consumer_secret: "",
+        access_token_key: "",
+        access_token_secret: ""
     });
     await easyDMCore.twitterAdapter.initTwitterClient();
     await easyDMCore.twitterAdapter.syncFollowers(true);
