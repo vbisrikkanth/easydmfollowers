@@ -1,15 +1,23 @@
-'use strict';
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const basename = path.basename(__filename);
+import fs from 'fs';
+import path from 'path';
+import Sequelize from 'sequelize';
 
-const initDb = (sqliteLocation) => {
-  const db = {};
+const basename = path.basename(__filename);
+const db = {
+  StateVariable: null,
+  User: null,
+  List: null,
+  UserList: null,
+  Campaign: null,
+  CampaignUser: null,
+  FollowersJob: null,
+  CampaignJob: null
+};
+export const initDB = (sqliteLocation) => {
   const sequelize = new Sequelize({
     "dialect": "sqlite",
     "storage": sqliteLocation,
-    logging: console.log
+    logging: false
   });
 
   fs
@@ -20,7 +28,7 @@ const initDb = (sqliteLocation) => {
     .forEach(file => {
       const model = sequelize['import'](path.join(__dirname, file));
       db[model.name] = model;
-      console.log(model.name)
+
     });
 
   Object.keys(db).forEach(modelName => {
@@ -31,7 +39,5 @@ const initDb = (sqliteLocation) => {
 
   db.sequelize = sequelize;
   db.Sequelize = Sequelize;
-  return db;
 }
-
-module.exports = initDb;
+export default db;
