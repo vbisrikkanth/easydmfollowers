@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
     favourites_count: DataTypes.INTEGER,
     statuses_count: DataTypes.INTEGER,
     default_profile: DataTypes.BOOLEAN,
-    default_profile_image: DataTypes.BOOLEAN
+    default_profile_image: DataTypes.BOOLEAN,
+    status: DataTypes.INTEGER
   }, {});
   User.associate = function (models) {
     // User.belongsToMany(models.Campaign, { through: 'CampaignUsers', foreignKey: 'user_id', otherKey: 'campaign_id' });

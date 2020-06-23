@@ -1,13 +1,13 @@
 import EasyDMCore from './index'
 
 const easyDMCore = new EasyDMCore("jupiter.sqlite");
-async function test(){
-    console.log(await easyDMCore.stateVariables.setVariable("apikey","newKey")); 
+async function test() {
+    console.log(await easyDMCore.stateVariables.setVariable("apikey", "newKey"));
     console.log(await easyDMCore.stateVariables.getVariable("apikey"));
 }
 
-async function test2(){
-    const userId = await easyDMCore.user.add(  
+async function test2() {
+    const userId = await easyDMCore.user.add(
         {
             "id": 6253282,
             "id_str": "62532824454554578786",
@@ -68,22 +68,29 @@ async function test2(){
             "notifications": null,
             "translator_type": null
         }
-        
-        )
 
-        // const listId = await easyDMCore.list.add("List 1","Some thing by praveen n",{"key":["fdf","dfdf"]});
-        await easyDMCore.list.addUser(5, userId);
+    )
+
+    // const listId = await easyDMCore.list.add("List 1","Some thing by praveen n",{"key":["fdf","dfdf"]});
+    await easyDMCore.list.addUser(5, userId);
 }
 
-async function test3(){
-    easyDMCore.TwitterAdapter.setTwitterKeys({
-        consumer_key : "",
-        consumer_secret: "",
-        access_token_key: "",
-        access_token_secret: ""
-    });
-    await easyDMCore.twitterAdapter.initTwitterClient();
-    await easyDMCore.twitterAdapter.syncFollowers(true);
+async function test3() {
+    const twitterKeys = easyDMCore.TwitterAdapter.getTwitterKeys();
+    if (Object.keys(twitterKeys) !== 0) {
+        await easyDMCore.TwitterAdapter.setTwitterKeys({
+            consumer_key: "",
+            consumer_secret: "",
+            access_token_key: "",
+            access_token_secret: ""
+        });
+        await easyDMCore.twitterAdapter.initTwitterClient();
+        await easyDMCore.twitterAdapter.syncFollowers(true);
+    }
+    else{
+        await easyDMCore.twitterAdapter.initTwitterClient();
+        await easyDMCore.twitterAdapter.syncFollowers();
+    }
 };
 
 test3();

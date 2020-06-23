@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   CampaignUser.associate = function (models) {
     // CampaignUser.belongsTo(models.CampaignJob, { foreignKey: 'job_id' });
-    CampaignUser.belongsTo(models.User, { foreignKey: 'user_id', otherKey: 'id_str'})
+    CampaignUser.belongsTo(models.User, { foreignKey: 'user_id', otherKey: 'id_str' })
   };
   return CampaignUser;
 };

@@ -53,7 +53,10 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
-      }
+      },
+      status:  {
+        type: Sequelize.INTEGER
+      },
     });
   },
   down: (queryInterface, Sequelize) => {
