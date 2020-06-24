@@ -1,13 +1,15 @@
 export const CAMPAIGN_STATUS = {
     NOT_STARTED: 10,
     RUNNING: 20,
-    PAUSE: 30,
+    PAUSED: 30,
     DONE: 40
 }
 
 export const FOLLOWERS_JOB = {
     SCHEDULED: 10,
-    DONE: 40
+    FAILED: 30,
+    DONE: 40,
+    CLOSED: 50
 }
 
 export const TWITTER_CLIENT_STATE = {

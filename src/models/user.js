@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     name: DataTypes.STRING,
     screen_name: DataTypes.STRING,
+    profile_image_url_https:DataTypes.STRING,
     location: DataTypes.STRING,
     description: DataTypes.STRING,
     protected: DataTypes.BOOLEAN,

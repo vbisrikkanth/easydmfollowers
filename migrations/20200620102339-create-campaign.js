@@ -14,7 +14,10 @@ module.exports = {
       message: {
         type: Sequelize.STRING
       },
-      weight: {
+      allocatedMsgCount: {
+        type: Sequelize.INTEGER
+      },
+      scheduledTime:{
         type: Sequelize.INTEGER
       },
       status: {
