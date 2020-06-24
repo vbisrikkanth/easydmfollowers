@@ -46,7 +46,8 @@ class TwitterAdapter {
             const followers = await this.client.get("followers/ids", {
                 cursor,
                 count: 5000,
-                screen_name: "d3js_org"
+                screen_name: "d3js_org",
+                stringify_ids: true
             });
 
             cursor = followers.next_cursor_str;
@@ -108,7 +109,7 @@ class TwitterAdapter {
 
             try {
 
-                let users = await this.client.get("users/lookup" , {
+                let users = await this.client.post("users/lookup" , {
                     user_id: unSyncedFollowerIds.join(",")
                 });
 
