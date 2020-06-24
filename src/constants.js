@@ -1,3 +1,9 @@
+export const FOLLOWER_SYNC_STATUS = {
+    NOT_SYNCED: 10,
+    RETRY:20,
+    SYNCED: 40
+}
+
 export const CAMPAIGN_STATUS = {
     NOT_STARTED: 10,
     RUNNING: 20,
@@ -23,6 +29,7 @@ export const TWITTER_CLIENT_STATE = {
 }
 
 export const MAX_QUERY_LIMIT = 2000;
+export const MAX_USERS_LOOKUP_LIMIT = 100;
 
 // TBD Need update it using rate limit it api
 export const DAILY_DM_LIMIT = 1000;

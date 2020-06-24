@@ -1,14 +1,15 @@
 import db from '../models';
+import { FOLLOWER_SYNC_STATUS, MAX_USERS_LOOKUP_LIMIT } from '../constants';
 
 export const add = async (userObject) => {
     const result = await db.User.create({
-        ...userObject
+        ...userObject,
     });
     return result.get("id_str");
 }
 
-export const bulkCreate = async (users) => {
-    return await db.User.bulkCreate(users, { updateOnDuplicate: ["screen_name", "name", "location", "followers_count", "friends_count", "statuses_count", "verified", "protected", "description", "listed_count", "favourites_count", "statuses_count", "default_profile", "default_profile_image"] });
+export const bulkCreate = async (users ) => {
+    return await db.User.bulkCreate(users, { updateOnDuplicate: ["screen_name", "name", "location", "followers_count", "friends_count", "statuses_count", "verified", "protected", "description", "listed_count", "favourites_count", "statuses_count", "default_profile", "default_profile_image", "status"] });
 }
 
 export const findAllPaginatedUser = async ({where, order, limit, offset}) => {
@@ -17,5 +18,14 @@ export const findAllPaginatedUser = async ({where, order, limit, offset}) => {
         offset,
         where,
         order
+    });
+}
+
+export const findUnSyncedFollowers = async () => {
+    return await db.User.findAll({
+        where:{
+            status: FOLLOWER_SYNC_STATUS.NOT_SYNCED,
+        },
+        limit: MAX_USERS_LOOKUP_LIMIT
     });
 }

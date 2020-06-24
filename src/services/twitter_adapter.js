@@ -2,8 +2,8 @@ import Twitter from 'twitter-lite';
 import { setVariables, getVariables } from './state_variables';
 import { getActiveJob, scheduleNewJob, closeActiveJob } from './follower-job';
 import { scheduleCron } from './cron-service';
-import { bulkCreate } from './user';
-import { TWITTER_CLIENT_STATE } from '../constants'
+import { bulkCreate, findUnSyncedFollowers } from './user';
+import { TWITTER_CLIENT_STATE, FOLLOWER_SYNC_STATUS } from '../constants';
 import logger from '../utils/logger';
 class TwitterAdapter {
 
@@ -43,20 +43,33 @@ class TwitterAdapter {
         try {
 
             logger.info("TwitterAdapter -> syncFollowersToDb -> cursor", cursor);
-            const followers = await this.client.get("followers/list", {
+            const followers = await this.client.get("followers/ids", {
                 cursor,
-                count: 200,
-                // screen_name: "d3js_org"
+                count: 5000,
+                screen_name: "d3js_org"
             });
 
             cursor = followers.next_cursor_str;
             const rateLimit = followers._headers.get('x-rate-limit-remaining');
             // Add Job Id to user detail
-            await bulkCreate(followers.users);
+
+            let followerIds = [];
+
+            followers.ids.forEach(followerId => {
+                followerIds.push({
+                    id_str: followerId,
+                    status: FOLLOWER_SYNC_STATUS.NOT_SYNCED
+                });
+            });
+
+            await bulkCreate(followerIds);
+
             logger.info("TwitterAdapter -> syncFollowersToDb -> rateLimit", rateLimit);
-            logger.info("TwitterAdapter -> syncFollowersToDb -> followersCount", followers.users.length);
+            logger.info("TwitterAdapter -> syncFollowersToDb -> followersCount", followers.ids.length);
+
             if (cursor === "0") {
                 logger.info("TwitterAdapter -> syncFollowersToDb -> job done");
+                this.populateFollowerData();
                 let activeJob = await getActiveJob();
                 if (activeJob)
                     await closeActiveJob(activeJob);
@@ -67,6 +80,9 @@ class TwitterAdapter {
                 return;
             }
             scheduled = new Date(followers._headers.get('x-rate-limit-reset') * 1000);
+
+
+
         }
         catch (e) {
             logger.info("TwitterAdapter -> syncFollowersToDb -> errors", e.errors[0].code);
@@ -77,6 +93,65 @@ class TwitterAdapter {
         await scheduleNewJob({ cursor, scheduled });
         const job = this.getSyncJob(cursor);
         this.activeCron = scheduleCron(scheduled, job);
+    }
+
+
+     populateFollowerData = async () => {
+
+        let unSyncedFollowerIds = (await findUnSyncedFollowers()).map(user => user.get("id_str"));
+
+        let counterSuccess = 0;
+
+        while (unSyncedFollowerIds.length > 0) {
+
+            let syncedUsers = [];
+
+            try {
+
+                let users = await this.client.get("users/lookup" , {
+                    user_id: unSyncedFollowerIds.join(",")
+                });
+
+                users.forEach(user => {
+                    syncedUsers.push({
+                        ...user,
+                        status: FOLLOWER_SYNC_STATUS.SYNCED
+                    });
+                });
+
+                
+
+                await bulkCreate(syncedUsers);
+
+                unSyncedFollowerIds = (await findUnSyncedFollowers()).map(user => user.get("id_str"));
+                //logger.info("TwitterAdapter -> syncFollowersToDb -> unSyncedFollowerIds", unSyncedFollowerIds);
+
+                counterSuccess++;
+
+                console.log("lookup successful : " + counterSuccess + " : " + users.length);
+            } catch (e) {
+                logger.info("TwitterAdapter -> syncFollowersToDb -> findUnSyncedFollowers -> errors", e.errors[0].code);
+
+                if(e.errors[0].code == 17){
+                    let followerIds = [];
+
+                    unSyncedFollowerIds.forEach(followerId => {
+                        followerIds.push({
+                            id_str: followerId,
+                            status: FOLLOWER_SYNC_STATUS.RETRY
+                        });
+                    });
+
+                    await bulkCreate(followerIds);
+
+                }
+
+                unSyncedFollowerIds = (await findUnSyncedFollowers()).map(user => user.get("id_str"));
+                
+                logger.info("TwitterAdapter -> syncFollowersToDb -> unSyncedFollowerIds", unSyncedFollowerIds);
+                //unSyncedFollowerIds = [];
+            }
+        }
     }
 
     getSyncJob = () => {
@@ -116,6 +191,10 @@ class TwitterAdapter {
         }
         logger.info("TwitterAdapter -> syncFollower -> initSynFollowersCron");
         await this.initSynFollowersCron(force);
+    }
+
+    getUnSyncedFollowers = async () => {
+        return (await findUnSyncedFollowers()).map(user => user.toJSON().id_str);
     }
 }
 
