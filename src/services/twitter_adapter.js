@@ -2,7 +2,7 @@ import Twitter from 'twitter-lite';
 import { setVariables, getVariables } from './state_variables';
 import { getActiveJob, scheduleNewJob, closeActiveJob } from './follower-job';
 import { scheduleCron } from './cron-service';
-import { bulkCreate, findUnSyncedFollowers } from './user';
+import { bulkCreate, findUnSyncedUsers } from './user';
 import { TWITTER_CLIENT_STATE, FOLLOWER_SYNC_STATUS } from '../constants';
 import logger from '../utils/logger';
 class TwitterAdapter {
@@ -23,15 +23,36 @@ class TwitterAdapter {
         });
         logger.info("Twitter client initialized");
         this.clientState = TWITTER_CLIENT_STATE.INITIALIZED;
+        this.populatingFollowers = false;
     }
 
     static setTwitterKeys = async ({ consumer_key, consumer_secret, access_token_key, access_token_secret }) => {
-        return await setVariables([
-            { property: "consumer_key", value: consumer_key },
-            { property: "consumer_secret", value: consumer_secret },
-            { property: "access_token_key", value: access_token_key },
-            { property: "access_token_secret", value: access_token_secret }
-        ]);
+        const client = new Twitter({
+            subdomain: "api", // "api" is the default (change for other subdomains)
+            version: "1.1", // version "1.1" is the default (change for other subdomains)
+            consumer_key,
+            consumer_secret,
+            access_token_key,
+            access_token_secret
+        });
+
+        try {
+            const authResponse = await client.get("account/verify_credentials");
+            logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Verified");
+            
+            await setVariables([
+                { property: "consumer_key", value: consumer_key },
+                { property: "consumer_secret", value: consumer_secret },
+                { property: "access_token_key", value: access_token_key },
+                { property: "access_token_secret", value: access_token_secret }
+            ]);
+
+            return authResponse;
+
+        }catch(e){
+            logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Failed");
+            return false;
+        }
     }
 
     static getTwitterKeys = async () => {
@@ -46,7 +67,7 @@ class TwitterAdapter {
             const followers = await this.client.get("followers/ids", {
                 cursor,
                 count: 5000,
-                screen_name: "d3js_org",
+                //screen_name: "balajis",
                 stringify_ids: true
             });
 
@@ -64,19 +85,20 @@ class TwitterAdapter {
             });
 
             await bulkCreate(followerIds);
+            this.populateFollowersData();
 
             logger.info("TwitterAdapter -> syncFollowersToDb -> rateLimit", rateLimit);
             logger.info("TwitterAdapter -> syncFollowersToDb -> followersCount", followers.ids.length);
 
             if (cursor === "0") {
                 logger.info("TwitterAdapter -> syncFollowersToDb -> job done");
-                this.populateFollowerData();
                 let activeJob = await getActiveJob();
                 if (activeJob)
                     await closeActiveJob(activeJob);
                 return;
             }
             if (rateLimit > 0) {
+                
                 this.syncFollowersToDb(cursor);
                 return;
             }
@@ -97,61 +119,53 @@ class TwitterAdapter {
     }
 
 
-     populateFollowerData = async () => {
+    populateFollowersData = async () => {
 
-        let unSyncedFollowerIds = (await findUnSyncedFollowers()).map(user => user.get("id_str"));
+        if( ! this.populatingFollowers ){
 
-        let counterSuccess = 0;
+            this.populatingFollowers = true;
 
-        while (unSyncedFollowerIds.length > 0) {
+            let unSyncedFollowerIds = (await findUnSyncedUsers()).map(user => user.get("id_str"));
 
-            let syncedUsers = [];
-
-            try {
-
-                let users = await this.client.post("users/lookup" , {
-                    user_id: unSyncedFollowerIds.join(",")
-                });
-
-                users.forEach(user => {
-                    syncedUsers.push({
-                        ...user,
-                        status: FOLLOWER_SYNC_STATUS.SYNCED
+            while (unSyncedFollowerIds.length > 0) {
+                let syncedUsers = [];
+                try {
+                    let users = await this.client.post("users/lookup", {
+                        user_id: unSyncedFollowerIds.join(",")
                     });
-                });
 
-                
-
-                await bulkCreate(syncedUsers);
-
-                unSyncedFollowerIds = (await findUnSyncedFollowers()).map(user => user.get("id_str"));
-                //logger.info("TwitterAdapter -> syncFollowersToDb -> unSyncedFollowerIds", unSyncedFollowerIds);
-
-                counterSuccess++;
-
-                console.log("lookup successful : " + counterSuccess + " : " + users.length);
-            } catch (e) {
-                logger.info("TwitterAdapter -> syncFollowersToDb -> findUnSyncedFollowers -> errors", e.errors[0].code);
-
-                if(e.errors[0].code == 17){
-                    let followerIds = [];
-
-                    unSyncedFollowerIds.forEach(followerId => {
-                        followerIds.push({
-                            id_str: followerId,
-                            status: FOLLOWER_SYNC_STATUS.RETRY
+                    users.forEach(user => {
+                        syncedUsers.push({
+                            ...user,
+                            status: FOLLOWER_SYNC_STATUS.SYNCED
                         });
                     });
 
-                    await bulkCreate(followerIds);
+                    await bulkCreate(syncedUsers);
+                    unSyncedFollowerIds = (await findUnSyncedUsers()).map(user => user.get("id_str"));
 
+                } catch (e) {
+                    logger.info("TwitterAdapter -> syncFollowersToDb -> findUnSyncedUsers -> errors", e);
+
+                    if (e.errors[0].code == 17) {
+                        let followerIds = [];
+
+                        unSyncedFollowerIds.forEach(followerId => {
+                            followerIds.push({
+                                id_str: followerId,
+                                status: FOLLOWER_SYNC_STATUS.FAILED
+                            });
+                        });
+
+                        await bulkCreate(followerIds);
+
+                    }
+
+                    unSyncedFollowerIds = (await findUnSyncedUsers()).map(user => user.get("id_str"));
                 }
-
-                unSyncedFollowerIds = (await findUnSyncedFollowers()).map(user => user.get("id_str"));
-                
-                logger.info("TwitterAdapter -> syncFollowersToDb -> unSyncedFollowerIds", unSyncedFollowerIds);
-                //unSyncedFollowerIds = [];
             }
+
+            this.populatingFollowers = false;
         }
     }
 
@@ -192,10 +206,6 @@ class TwitterAdapter {
         }
         logger.info("TwitterAdapter -> syncFollower -> initSynFollowersCron");
         await this.initSynFollowersCron(force);
-    }
-
-    getUnSyncedFollowers = async () => {
-        return (await findUnSyncedFollowers()).map(user => user.toJSON().id_str);
     }
 }
 
