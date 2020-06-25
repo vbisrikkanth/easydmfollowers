@@ -4,14 +4,14 @@ import Sequelize from 'sequelize';
 
 const basename = path.basename(__filename);
 const db = {
-  StateVariable: null,
-  User: null,
-  List: null,
-  UserList: null,
-  Campaign: null,
-  CampaignUser: null,
-  FollowersJob: null,
-  CampaignJob: null
+  // StateVariable: null,
+  // User: null,
+  // List: null,
+  // UserList: null,
+  // Campaign: null,
+  // CampaignUser: null,
+  // FollowersJob: null,
+  // CampaignJobHistory: null
 };
 export const initDB = (sqliteLocation) => {
   const sequelize = new Sequelize({

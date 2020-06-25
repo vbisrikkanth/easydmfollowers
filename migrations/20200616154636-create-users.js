@@ -7,6 +7,9 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.STRING
       },
+      profile_image_url_https:{
+        type: Sequelize.STRING
+      },
       name: {
         type: Sequelize.STRING
       },

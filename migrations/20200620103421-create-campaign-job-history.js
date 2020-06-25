@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('CampaignJobs', {
+    return queryInterface.createTable('CampaignJobHistory', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -13,9 +13,6 @@ module.exports = {
       },
       status: {
         type: Sequelize.INTEGER
-      },
-      scheduled: {
-        type: Sequelize.DATE
       },
       ran_at: {
         type: Sequelize.DATE
