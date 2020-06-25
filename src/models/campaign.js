@@ -1,4 +1,5 @@
 'use strict';
+import { JOB_STATUS } from '../constants'
 module.exports = (sequelize, DataTypes) => {
   const Campaign = sequelize.define('Campaign', {
     name: DataTypes.STRING,
@@ -11,5 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     Campaign.hasMany(models.CampaignUser, { foreignKey: 'campaign_id' });
     Campaign.hasMany(models.CampaignJob, { foreignKey: 'campaign_id' });
   };
+  Campaign.getActiveJob = function () {
+    return Campaign.getCampaignJobs({ where: { status: JOB_STATUS.SCHEDULED} })[0]
+  }
   return Campaign;
 };
