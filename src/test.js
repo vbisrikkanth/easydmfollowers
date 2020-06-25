@@ -1,6 +1,8 @@
 import EasyDMCore from './index'
 
+
 const easyDMCore = new EasyDMCore("jupiter.sqlite");
+
 async function test() {
     console.log(await easyDMCore.stateVariables.setVariable("apikey", "newKey"));
     console.log(await easyDMCore.stateVariables.getVariable("apikey"));
@@ -78,14 +80,19 @@ async function test2() {
 async function test3() {
     const twitterKeys = easyDMCore.TwitterAdapter.getTwitterKeys();
     if (Object.keys(twitterKeys) !== 0) {
-        await easyDMCore.TwitterAdapter.setTwitterKeys({
+        const user = await easyDMCore.TwitterAdapter.setTwitterKeys({
             consumer_key: "",
             consumer_secret: "",
             access_token_key: "",
             access_token_secret: ""
         });
-        await easyDMCore.twitterAdapter.initTwitterClient();
-        await easyDMCore.twitterAdapter.syncFollowers(true);
+
+        if( user !== false ) {
+            await easyDMCore.twitterAdapter.initTwitterClient();
+            await easyDMCore.twitterAdapter.syncFollowers(true);
+        }else{
+            console.log("Key authentication failed")
+        }
     }
     else{
         await easyDMCore.twitterAdapter.initTwitterClient();
@@ -93,4 +100,25 @@ async function test3() {
     }
 };
 
+
+async function test4() {
+    const newSegment = {
+        name: "Segment1",
+        description: "This is a test Segment",
+        filters: {
+            where: {
+                followers_count:{
+                    gt : 100
+                }
+            },
+            limit: 100
+        }
+    }
+
+    //const createdSegment = await easyDMCore.createSegment(newSegment);
+    //console.log(await easyDMCore.getSegment(createdSegment.id));
+    console.log(await easyDMCore.getSegments());
+}
+
 test3();
+//test4();

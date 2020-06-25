@@ -1,6 +1,6 @@
 export const FOLLOWER_SYNC_STATUS = {
     NOT_SYNCED: 10,
-    RETRY:20,
+    FAILED:30,
     SYNCED: 40
 }
 
