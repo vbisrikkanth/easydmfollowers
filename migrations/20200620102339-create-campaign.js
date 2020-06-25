@@ -14,11 +14,17 @@ module.exports = {
       message: {
         type: Sequelize.STRING
       },
-      allocatedMsgCount: {
+      description: {
+        type: Sequelize.STRING
+      },
+      allocated_msg_count: {
         type: Sequelize.INTEGER
       },
-      scheduledTime:{
+      scheduled_time:{
         type: Sequelize.INTEGER
+      },
+      last_run:{
+        type: Sequelize.DATE
       },
       status: {
         type: Sequelize.INTEGER
