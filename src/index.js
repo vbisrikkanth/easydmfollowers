@@ -1,9 +1,9 @@
 import { initDB } from './models'
 import TwitterAdapter from './services/twitter_adapter';
 import CampaignAdapter from './services/campaign_adapter';
-import { createCampaign, getCampaignUserPaginated, getAllActiveCampaign } from './services/campaign';
+import { getCampaignUserPaginated, getAllActiveCampaign } from './services/campaign';
 import { findAllUsers, findUsersCount, findAllPaginatedUsers, findUser } from './services/user';
-import { createList, updateList, getAllLists, getList } from './services/list';
+import { createList, updateList, getAllLists, getList, deleteList } from './services/list';
 
 class EasyDMCore {
     constructor(connectionString) {
@@ -12,6 +12,19 @@ class EasyDMCore {
         this.twitterAdapter = new TwitterAdapter();
         this.TwitterAdapter = TwitterAdapter;
         this.campaignAdapter = new CampaignAdapter(this.twitterAdapter);
+    }
+
+    // --- Twitter Adapter --- //
+    async getUserObject() {
+        return await this.twitterAdapter.getUserObject();
+    }
+
+    async syncFollowers(force) {
+        this.twitterAdapter.syncFollowers(force);
+    }
+
+    async setKeys(twitterKey) {
+        return await this.twitterAdapter.verifyAndSetTwitterKeys(twitterKey);
     }
 
     //---- Followers ---- //
@@ -28,17 +41,6 @@ class EasyDMCore {
         return await findUsersCount(where)
     }
 
-    async getUserObject() {
-        return await this.twitterAdapter.getUserObject();
-    }
-
-    async syncFollowers(force) {
-        this.twitterAdapter.syncFollowers(force);
-    }
-
-    async setKeys(twitterKey) {
-        return await this.twitterAdapter.verifyAndSetTwitterKeys(twitterKey);
-    }
 
     //---- Segments ---- //
 
@@ -57,17 +59,29 @@ class EasyDMCore {
     async getSegment(id) {
         return (await getList(id)).toJSON();
     }
-    
+
+    async deleteSegment(id) {
+        return (await deleteList(id)).toJSON();
+    }
     //---- DM ---- //
 
-    async sendDM({recipient,text}) {
+    async sendDM({ recipient, text }) {
         const where = { screen_name: recipient };
         const user = await findUser(where);
-        return (await this.twitterAdapter.sendDM({user,text}));
+        return (await this.twitterAdapter.sendDM({ user, text }));
     }
 
+    // --- Campaign ---//
     async createCampaign(params) {
-        return (await createCampaign(params)).toJSON();
+        return (await this.campaignAdapter.createCampaign(params)).toJSON();
+    }
+
+    async updateCampaign(id, properties) {
+        return (await this.campaignAdapter.updateCampaign(id, properties)).toJSON();
+    }
+
+    async deleteCampaign(id) {
+        return (await this.campaignAdapter.deleteCampaign(id)).toJSON();
     }
 
     async getAllActiveCampaign() {
@@ -85,10 +99,10 @@ class EasyDMCore {
             }
         }));
     }
-    static publicMethods = ["getPaginatedFollowers", "getFollowers", "getFollowersCount", "getUserObject", "syncFollowers", "setKeys", "createSegment",
-        "updateSegment", "getSegments", "getSegment", "sendDM"]
-
-
+    async getAllMissedCampaigns() {
+        const { missedCampaigns } = await this.campaignAdapter.getAllMissedCampaigns();
+        return missedCampaigns.map(campaign => campaign.toJSON());
+    }
 }
 
 export default EasyDMCore;

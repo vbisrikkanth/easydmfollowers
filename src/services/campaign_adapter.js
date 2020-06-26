@@ -1,5 +1,5 @@
 import { createCampaignJob } from './campaign-jobs';
-import { getAllActiveCampaign, updateCampaign, deleteCampaign , createCampaign } from './campaign';
+import { getAllActiveCampaign, updateCampaign, deleteCampaign, createCampaign } from './campaign';
 import { scheduleCron } from './cron-service';
 import { JOB_STATUS, CAMPAIGN_MESSAGE_STATUS, TWITTER_CLIENT_STATE, DAILY_DM_LIMIT, CAMPAIGN_STATUS } from '../constants';
 import { isToday, getCurrentTimeMinutes, getTimeStamp } from '../utils/common'
@@ -7,11 +7,17 @@ class CampaignAdapter {
     constructor(twitterAdapter) {
         this.campaignCronMap = {};
         this.twitterAdapter = twitterAdapter;
+        this.init();
     }
 
-    async getAllMissedCampaigns() {
+    async init() {
+        const { futureCampaigns } = await this.getAllCampaigns();
+        futureCampaigns.map(this.scheduleCronForCampaign);
+    }
+    async getAllCampaigns() {
         const activeCampaigns = await getAllActiveCampaign();
         const missedCampaigns = [];
+        const futureCampaigns = [];
         activeCampaigns.forEach((campaign) => {
             const lastRun = campaign.get("last_run");
             const scheduleTime = campaign.get("scheduled_time");
@@ -19,21 +25,21 @@ class CampaignAdapter {
                 return;
             }
             if (scheduleTime < getCurrentTimeMinutes()) {
-                missedCampaigns.push(campaign.toJSON());
+                missedCampaigns.push(campaign);
             } else {
-                scheduleCronForCampaign(campaign);
+                futureCampaigns.push(campaign);
             }
         });
-        return missedCampaigns();
+        return { missedCampaigns, futureCampaigns };
     }
 
     async updateCampaign(id, properties) {
         const campaign = await updateCampaign(id, properties);
         scheduleCron(campaign);
-        return campaign.toJSON();
+        return campaign;
     }
 
-    async createCampaign (campaignProps){
+    async createCampaign(campaignProps) {
         const campaign = await createCampaign(campaignProps);
         this.scheduleCronForCampaign(campaign);
         return campaign;
@@ -59,6 +65,7 @@ class CampaignAdapter {
             this.campaignCronMap[id] = scheduleCron(scheduled, () => {
                 this.runCampaignJob(campaign)
             });
+        console.log("CampaignAdapter -> scheduleCronForCampaign", id);
     }
 
     async runCampaignJob(campaign) {
@@ -77,7 +84,7 @@ class CampaignAdapter {
         for (let campaignUser of campaignUsers) {
             const user = campaignUser.getUser();
             try {
-                await this.twitterAdapter.sendMessage(message, user);
+                await this.twitterAdapter.sendDM({ text: message , user});
                 campaignUser.status = CAMPAIGN_MESSAGE_STATUS.SEND;
             }
             catch (e) {

@@ -1,6 +1,2 @@
-acrhive/
-config/
-migrations/
-test.js
-src/
-log/
+**/*
+!dist/**/*

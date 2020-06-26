@@ -21,10 +21,11 @@ export const bulkCreate = async (users) => {
     return await db.User.bulkCreate(users, { updateOnDuplicate: ["screen_name", "name", "location", "followers_count", "friends_count", "statuses_count", "verified", "protected", "description", "listed_count", "favourites_count", "statuses_count", "default_profile", "default_profile_image", "profile_image_url_https", "status"] });
 }
 
-export const findAllPaginatedUsers = async ({ where, order, limit, offset, segmentId }) => {
-    if (segmentId) {
-        let listFilters = (await getList(segmentId)).get("filters");
-        where = processFilters(listFilters);
+export const findAllPaginatedUsers = async ({ where, order, limit, offset, segmentIds }) => {
+    if (segmentIds) {
+        where =  {
+            [Op.or]: (await getListFilters(segmentIds)).map(processFilters)
+        }
     }
     where = addBaseCondition(where);
     if (!limit || limit > MAX_QUERY_LIMIT) {

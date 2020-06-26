@@ -11,6 +11,12 @@ export const getList = async (id) => {
     return await db.List.findByPk(id);
 }
 
+export const deleteList = async (id) => {
+   const list =  await db.List.findByPk(id);
+   return await list.destroy();
+}
+
+
 export const getListFilters = async (ids) => {
     const lists = await db.List.findAll({
         where: {

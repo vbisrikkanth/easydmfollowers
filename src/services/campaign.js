@@ -20,7 +20,7 @@ export const getAllActiveCampaign = async () => {
     return await db.Campaign.findAll({ where: { status: CAMPAIGN_STATUS.RUNNING } });
 }
 
-export const createCampaign = async ({ name, message, allocated_msg_count, description, segmentIds, order, scheduled_time }) => {
+export const createCampaign = async ({ name, message, allocated_msg_count, description, segmentIds = [], order, scheduled_time }) => {
     const campaign = await db.Campaign.create({
         name,
         message,
@@ -29,9 +29,8 @@ export const createCampaign = async ({ name, message, allocated_msg_count, descr
         scheduled_time,
         status: CAMPAIGN_STATUS.RUNNING
     });
-    const filters = (await getListFilters(segmentIds)).map(processFilters);
-    const where = {
-        [Op.or]: filters
+    const where = segmentIds.length === 0 ? {} : {
+        [Op.or]: (await getListFilters(segmentIds)).map(processFilters)
     }
     let offset = 0;
     let users;
