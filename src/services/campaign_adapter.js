@@ -9,9 +9,6 @@ class CampaignAdapter {
         this.twitterAdapter = twitterAdapter;
     }
 
-    async getAllActiveCampaign () {
-        return await getAllActiveCampaign().map(campaign => campaign.toJSON());
-    }
     async getAllMissedCampaigns() {
         const activeCampaigns = await getAllActiveCampaign();
         const missedCampaigns = [];

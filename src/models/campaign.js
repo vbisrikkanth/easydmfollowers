@@ -2,7 +2,7 @@
 module.exports = (sequelize, DataTypes) => {
   const Campaign = sequelize.define('Campaign', {
     name: DataTypes.STRING,
-    message: DataTypes.STRING,
+    message: DataTypes.TEXT,
     description: DataTypes.STRING,
     allocated_msg_count: DataTypes.INTEGER,
     scheduled_time: DataTypes.INTEGER,

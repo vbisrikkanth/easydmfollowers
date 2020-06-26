@@ -17,7 +17,7 @@ export const deleteCampaign = async (id) => {
 }
 
 export const getAllActiveCampaign = async () => {
-    return await db.Campaign.findAll({ where: CAMPAIGN_STATUS.RUNNING });
+    return await db.Campaign.findAll({ where: { status: CAMPAIGN_STATUS.RUNNING } });
 }
 
 export const createCampaign = async ({ name, message, allocated_msg_count, description, segmentIds, order, scheduled_time }) => {

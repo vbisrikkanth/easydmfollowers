@@ -1,10 +1,9 @@
 import { initDB } from './models'
 import TwitterAdapter from './services/twitter_adapter';
 import CampaignAdapter from './services/campaign_adapter';
-import { createCampaign , getCampaignUserPaginated} from './services/campaign';
+import { createCampaign, getCampaignUserPaginated, getAllActiveCampaign } from './services/campaign';
 import { findAllUsers, findUsersCount, findAllPaginatedUsers } from './services/user';
 import { createList, updateList, getAllLists, getList } from './services/list';
-import campaign_user from './models/campaign_user';
 
 class EasyDMCore {
     constructor(connectionString) {
@@ -63,7 +62,11 @@ class EasyDMCore {
         return (await createCampaign(params)).toJSON();
     }
 
-    async getCampaignUserPaginated(params){
+    async getAllActiveCampaign() {
+        return (await getAllActiveCampaign()).map(campaign => campaign.toJSON());
+    }
+
+    async getCampaignUserPaginated(params) {
         return (await getCampaignUserPaginated(params)).map((campaignUser => {
             campaignUser = campaignUser.toJSON();
             const user = campaignUser.User;
