@@ -1,6 +1,6 @@
 {
   "name": "edmf-core",
-  "version": "1.1.8",
+  "version": "1.1.11",
   "description": "Easy DM Followers Core",
   "main": "dist/index.js",
   "scripts": {

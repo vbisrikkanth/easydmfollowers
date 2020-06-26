@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     last_run: DataTypes.DATE
   }, {});
   Campaign.associate = function (models) {
-    // Campaign.belongsToMany(models.User, { through: 'CampaignUsers', foreignKey: 'campaign_id', otherKey: 'user_id' });
+    Campaign.belongsToMany(models.User, { through: 'CampaignUsers', foreignKey: 'campaign_id', otherKey: 'user_id' });
     Campaign.hasMany(models.CampaignUser, { foreignKey: 'campaign_id' });
   };
   return Campaign;

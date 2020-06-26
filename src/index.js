@@ -1,8 +1,10 @@
 import { initDB } from './models'
 import TwitterAdapter from './services/twitter_adapter';
-import CampaignAdapter from './services/campaign_adapter';;
-import { findAllUsers, findUsersCount } from './services/user';
+import CampaignAdapter from './services/campaign_adapter';
+import { createCampaign , getCampaignUserPaginated} from './services/campaign';
+import { findAllUsers, findUsersCount, findAllPaginatedUsers } from './services/user';
 import { createList, updateList, getAllLists, getList } from './services/list';
+import campaign_user from './models/campaign_user';
 
 class EasyDMCore {
     constructor(connectionString) {
@@ -15,8 +17,8 @@ class EasyDMCore {
 
     //---- Followers ---- //
 
-    async getPaginatedFollowers({ where, order, limit, offset }) {
-        return (await findAllPaginatedUser({ where, order, limit, offset })).map(user => user.toJSON());
+    async getPaginatedFollowers(params) {
+        return (await findAllPaginatedUsers(params)).map(user => user.toJSON());
     }
 
     async getFollowers(where = {}) {
@@ -42,21 +44,36 @@ class EasyDMCore {
     //---- Segments ---- //
 
     async createSegment({ name, description, filters }) {
-        return (await createList({ name, description, filters }));
+        return (await createList({ name, description, filters })).toJSON();
     }
 
     async updateSegment({ id, properties }) {
-        return (await updateList(id, properties));
+        return (await updateList(id, properties)).toJSON();
     }
 
     async getSegments() {
-        return (await getAllLists());
+        return (await getAllLists()).map(list => list.toJSON())
     }
 
     async getSegment(id) {
-        return (await getList(id));
+        return (await getList(id)).toJSON();
     }
 
+    async createCampaign(params) {
+        return (await createCampaign(params)).toJSON();
+    }
+
+    async getCampaignUserPaginated(params){
+        return (await getCampaignUserPaginated(params)).map((campaignUser => {
+            campaignUser = campaignUser.toJSON();
+            const user = campaignUser.User;
+            delete campaignUser.User
+            return {
+                ...user,
+                ...campaignUser
+            }
+        }));
+    }
     static publicMethods = ["getPaginatedFollowers", "getFollowers", "getFollowersCount", "getUserObject", "syncFollowers", "setKeys", "createSegment",
         "updateSegment", "getSegments", "getSegment"]
 

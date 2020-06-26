@@ -1,7 +1,9 @@
 import Op from 'sequelize/lib/operators';
 import db from '../models';
-import { CAMPAIGN_STATUS, MAX_QUERY_LIMIT, } from '../constants';
-import { findAllPaginated } from './user';
+import { getListFilters } from './list';
+import { CAMPAIGN_STATUS, MAX_QUERY_LIMIT_RAW, MAX_QUERY_LIMIT } from '../constants';
+import { findAllPaginatedUsersRaw } from './user';
+import { processFilters } from '../utils/common';
 
 export const getCampaign = async (id) => {
     return await db.Campaign.findByPk(id);
@@ -18,23 +20,44 @@ export const getAllActiveCampaign = async () => {
     return await db.Campaign.findAll({ where: CAMPAIGN_STATUS.RUNNING });
 }
 
-export const createCampaign = async ({ name, message, allocated_msg_count, description, filters, sort }) => {
+export const createCampaign = async ({ name, message, allocated_msg_count, description, segmentIds, order, scheduled_time }) => {
     const campaign = await db.Campaign.create({
         name,
         message,
         allocated_msg_count,
         description,
+        scheduled_time,
         status: CAMPAIGN_STATUS.RUNNING
     });
+    const filters = (await getListFilters(segmentIds)).map(processFilters);
     const where = {
         [Op.or]: filters
     }
-    let offset = 0, limit = MAX_QUERY_LIMIT;
+    let offset = 0;
     let users;
     do {
-        users = await findAllPaginated({ offset, limit, where, order: sort });
+        users = await findAllPaginatedUsersRaw({ offset, where, order });
         await campaign.addUsers(users);
-    } while (users.length >= limit);
+        offset = offset + MAX_QUERY_LIMIT_RAW
+    } while (users.length >= MAX_QUERY_LIMIT_RAW);
     users = null;
     return campaign;
+}
+
+
+export const getCampaignUserPaginated = async ({ id, limit, offset, order }) => {
+    if (!limit || limit > MAX_QUERY_LIMIT) {
+        limit = MAX_QUERY_LIMIT;
+    }
+    return await db.CampaignUser.findAll({
+        where: {
+            campaign_id: id
+        },
+        offset,
+        limit,
+        order,
+        include: [{
+            model: db.User,
+        }]
+    })
 }

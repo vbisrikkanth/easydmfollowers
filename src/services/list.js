@@ -1,25 +1,30 @@
 import db from '../models';
-
 export const createList = async ({ name, description, filters }) => {
-    const result = await db.List.create({
+    return await db.List.create({
         name,
         description,
         filters
     });
-    return result.toJSON();
 }
 
 export const getList = async (id) => {
-    const result = await db.List.findByPk(id);
-    return result.toJSON();
+    return await db.List.findByPk(id);
 }
 
+export const getListFilters = async (ids) => {
+    const lists = await db.List.findAll({
+        where: {
+            id: ids
+        }
+    });
+    return lists.map(list => list.get("filters"));
+}
+
+
 export const updateList = async (id, properties) => {
-    const result = await db.List.update(properties, { where: { id } });
-    return result.toJSON();
+    return await db.List.update(properties, { where: { id } });
 }
 
 export const getAllLists = async () => {
-    const results = await db.List.findAll();
-    return results.map(list => list.toJSON());
+    return await db.List.findAll();
 }

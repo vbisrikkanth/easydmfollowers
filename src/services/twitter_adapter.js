@@ -104,7 +104,7 @@ class TwitterAdapter {
         catch (e) {
             logger.info("TwitterAdapter -> syncFollowersId -> errors", e.errors[0].code);
             if (e.errors[0].code !== 88) { return; }
-            scheduled = new Date((e._headers.get('x-rate-limit-reset') + 30) * 1000);
+            scheduled = new Date(parseInt((e._headers.get('x-rate-limit-reset')) + 30) * 1000);
         }
         logger.info("TwitterAdapter -> syncFollowersId -> scheduleNewJob -> limitReset", scheduled);
         await scheduleNewJob({ cursor, scheduled });

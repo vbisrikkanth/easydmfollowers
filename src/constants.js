@@ -1,3 +1,4 @@
+import { and, or, gt, gte, lt, lte, eq } from 'sequelize/lib/operators';
 export const FOLLOWER_SYNC_STATUS = {
     NOT_SYNCED: 10,
     FAILED: 30,
@@ -19,7 +20,7 @@ export const JOB_STATUS = {
 }
 
 export const CAMPAIGN_MESSAGE_STATUS = {
-    SCHEDULED: 10,
+    SCHEDULED: null,
     FAILED: 30,
     SEND: 40
 }
@@ -30,8 +31,19 @@ export const TWITTER_CLIENT_STATE = {
     TOKEN_FAILED: 30
 }
 
-export const MAX_QUERY_LIMIT = 5000;
+export const MAX_QUERY_LIMIT = 100;
+export const MAX_QUERY_LIMIT_RAW = 10;
 export const MAX_USERS_LOOKUP_LIMIT = 100;
 
 // TBD Need update it using rate limit it api
 export const DAILY_DM_LIMIT = 1000;
+
+export const FILTER_OPERATOR_MAP = {
+    EQ : eq,
+    OR : or,
+    AND : and,
+    GT : gt,
+    GTE : gte,
+    LT : lt,
+    LTE : lte,
+};
