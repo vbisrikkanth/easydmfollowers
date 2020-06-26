@@ -12,10 +12,19 @@ module.exports = {
         type: Sequelize.STRING
       },
       message: {
+        type: Sequelize.TEXT
+      },
+      description: {
         type: Sequelize.STRING
       },
-      weight: {
+      allocated_msg_count: {
         type: Sequelize.INTEGER
+      },
+      scheduled_time:{
+        type: Sequelize.INTEGER
+      },
+      last_run:{
+        type: Sequelize.DATE
       },
       status: {
         type: Sequelize.INTEGER

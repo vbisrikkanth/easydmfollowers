@@ -1,89 +1,120 @@
 import EasyDMCore from './index'
 
+
 const easyDMCore = new EasyDMCore("jupiter.sqlite");
-async function test(){
-    console.log(await easyDMCore.stateVariables.setVariable("apikey","newKey")); 
-    console.log(await easyDMCore.stateVariables.getVariable("apikey"));
-}
 
-async function test2(){
-    const userId = await easyDMCore.user.add(  
-        {
-            "id": 6253282,
-            "id_str": "62532824454554578786",
-            "name": "Twitter API",
-            "screen_name": "TwitterAPI",
-            "location": "San Francisco, CA",
-            "profile_location": null,
-            "description": "The Real Twitter API. Tweets about API changes, service issues and our Developer Platform. Don't get an answer? It's on my website.",
-            "url": "https:\/\/t.co\/8IkCzCDr19",
-            "entities": {
-                "url": {
-                    "urls": [{
-                        "url": "https:\/\/t.co\/8IkCzCDr19",
-                        "expanded_url": "https:\/\/developer.twitter.com",
-                        "display_url": "developer.twitter.com",
-                        "indices": [
-                            0,
-                            23
-                        ]
-                    }]
-                },
-                "description": {
-                    "urls": []
-                }
-            },
-            "protected": false,
-            "followers_count": 6133636,
-            "friends_count": 12,
-            "listed_count": 12936,
-            "created_at": "Wed May 23 06:01:13 +0000 2007",
-            "favourites_count": 31,
-            "utc_offset": null,
-            "time_zone": null,
-            "geo_enabled": null,
-            "verified": true,
-            "statuses_count": 3656,
-            "lang": null,
-            "contributors_enabled": null,
-            "is_translator": null,
-            "is_translation_enabled": null,
-            "profile_background_color": null,
-            "profile_background_image_url": null,
-            "profile_background_image_url_https": null,
-            "profile_background_tile": null,
-            "profile_image_url": null,
-            "profile_image_url_https": "https:\/\/pbs.twimg.com\/profile_images\/942858479592554497\/BbazLO9L_normal.jpg",
-            "profile_banner_url": null,
-            "profile_link_color": null,
-            "profile_sidebar_border_color": null,
-            "profile_sidebar_fill_color": null,
-            "profile_text_color": null,
-            "profile_use_background_image": null,
-            "has_extended_profile": null,
-            "default_profile": false,
-            "default_profile_image": false,
-            "following": null,
-            "follow_request_sent": null,
-            "notifications": null,
-            "translator_type": null
+async function test3() {
+    let userObject = await easyDMCore.getUserObject();
+    if (!userObject) {
+        userObject = await easyDMCore.setKeys({
+            consumer_key: "",
+            consumer_secret: "",
+            access_token_key: "",
+            access_token_secret: ""
+        });
+
+        if (userObject) {
+            easyDMCore.syncFollowers(true);
+        } else {
+            console.log("Key authentication failed")
         }
-        
-        )
-
-        // const listId = await easyDMCore.list.add("List 1","Some thing by praveen n",{"key":["fdf","dfdf"]});
-        await easyDMCore.list.addUser(5, userId);
-}
-
-async function test3(){
-    easyDMCore.TwitterAdapter.setTwitterKeys({
-        consumer_key : "",
-        consumer_secret: "",
-        access_token_key: "",
-        access_token_secret: ""
-    });
-    await easyDMCore.twitterAdapter.initTwitterClient();
-    await easyDMCore.twitterAdapter.syncFollowers(true);
+    }
+    else {
+        easyDMCore.syncFollowers(true);
+    }
 };
 
-test3();
+async function test5() {
+    const res = await easyDMCore.getPaginatedFollowers({
+        limit: 100, offset: 0, order: [
+            ["followers_count", "ASC"],
+            ["friends_count", "DESC"]
+        ]
+    });
+    console.log(res.length);
+
+}
+async function test4() {
+    const newSegment = {
+        name: "Segment2",
+        description: "This is a test Segment",
+        filters: {
+            filterType: "AND",
+            conditions: [
+                {
+                    id: "followers_count",
+                    operator: "GT",
+                    value: 5000
+                }
+            ]
+        }
+    }
+    //const createdSegment = await easyDMCore.createSegment(newSegment);
+    //console.log(await easyDMCore.getSegment(createdSegment.id));
+    console.log(await easyDMCore.createSegment(newSegment));
+}
+
+
+//13,20
+async function test7() {
+    console.log((await easyDMCore.getPaginatedFollowers({
+        segmentId: 21,
+        order: [["friends_count", "DESC"]]
+    })).length);
+}
+
+async function test8() {
+    console.log((await easyDMCore.createCampaign({
+        name: "Campaign 1",
+        message: "Hi [user_name], Check out the link",
+        allocated_msg_count: 500,
+        description: "For segment 13 and 20",
+        scheduled_time: 870,
+        segmentIds: [13, 20]
+    })));
+}
+
+async function test9() {
+    // console.log((await easyDMCore.getCampaignUserPaginated({ id: 8, limit: 10 })));
+    console.log(await easyDMCore.getAllActiveCampaign())
+}
+
+async function test10() {
+    console.log(await easyDMCore.getFollowersCount(), "Count");
+}
+
+async function test11() {
+    let userObject = await easyDMCore.getUserObject();
+    if (!userObject) {
+        userObject = await easyDMCore.setKeys({
+            consumer_key: "",
+            consumer_secret: "",
+            access_token_key: "",
+            access_token_secret: ""
+        });
+
+        if (userObject) {
+            const users = await easyDMCore.getFollowers();
+
+            await users.forEach(async (user) => {
+                const recipient = user.screen_name;
+                const text = "https://valq.com\nHello [user_name]! \n- from Hell Paradise";
+                await easyDMCore.sendDM({ recipient, text });
+            });
+        } else {
+            console.log("Key authentication failed")
+        }
+    }
+    else {
+        const users = await easyDMCore.getFollowers();
+
+        await users.forEach(async (user) => {
+            const recipient = user.screen_name;
+            const text = "https://valq.com\nHello [user_name]! \n- from Hell Paradise";
+            await easyDMCore.sendDM({ recipient, text });
+        });
+    }
+}
+// test5();
+//test3();
+test9();

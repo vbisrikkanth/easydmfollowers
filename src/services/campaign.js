@@ -1,30 +1,62 @@
+import Op from 'sequelize/lib/operators';
 import db from '../models';
-import { CAMPAIGN_STATUS } from '../constants';
+import { getListFilters } from './list';
+import { CAMPAIGN_STATUS, MAX_QUERY_LIMIT_RAW, MAX_QUERY_LIMIT } from '../constants';
+import { findAllPaginatedUsersRaw } from './user';
+import { processFilters } from '../utils/common';
 
-const add = async ({ name, message, weight, description }) => {
-    const result = await db.Campaign.create({
+export const getCampaign = async (id) => {
+    return await db.Campaign.findByPk(id);
+}
+export const updateCampaign = async (id, properties) => {
+    return await db.Campaign.update(properties, { where: { id } });
+}
+export const deleteCampaign = async (id) => {
+    const campaign = await db.Campaign.findByPk(id);
+    return await campaign.destroy();
+}
+
+export const getAllActiveCampaign = async () => {
+    return await db.Campaign.findAll({ where: { status: CAMPAIGN_STATUS.RUNNING } });
+}
+
+export const createCampaign = async ({ name, message, allocated_msg_count, description, segmentIds = [], order, scheduled_time }) => {
+    const campaign = await db.Campaign.create({
         name,
         message,
-        weight,
+        allocated_msg_count,
         description,
-        status: CAMPAIGN_STATUS.NOT_STARTED
+        scheduled_time,
+        status: CAMPAIGN_STATUS.RUNNING
     });
-    return result.toJSON();
-}
-
-const get = async (id) => {
-    const camp = await db.Campaign.findByPk(id);
-    const campUsers = camp.getCampaignUsers();
-}
-const update = async (id, properties) => {
-    const result = await db.Campaign.update(properties, { where: { id } });
-    return result.toJSON();
-}
-
-const getAll = async () => {
-    const results = await db.Campaign.findAll();
-    return results.map(item => item.toJSON());
+    const where = segmentIds.length === 0 ? {} : {
+        [Op.or]: (await getListFilters(segmentIds)).map(processFilters)
+    }
+    let offset = 0;
+    let users;
+    do {
+        users = await findAllPaginatedUsersRaw({ offset, where, order });
+        await campaign.addUsers(users);
+        offset = offset + MAX_QUERY_LIMIT_RAW
+    } while (users.length >= MAX_QUERY_LIMIT_RAW);
+    users = null;
+    return campaign;
 }
 
 
-export default { add, getAll, update };
+export const getCampaignUserPaginated = async ({ id, limit, offset, order }) => {
+    if (!limit || limit > MAX_QUERY_LIMIT) {
+        limit = MAX_QUERY_LIMIT;
+    }
+    return await db.CampaignUser.findAll({
+        where: {
+            campaign_id: id
+        },
+        offset,
+        limit,
+        order,
+        include: [{
+            model: db.User,
+        }]
+    })
+}
