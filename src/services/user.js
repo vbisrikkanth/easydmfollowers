@@ -44,3 +44,7 @@ export const findUnSyncedUsers = async () => {
         limit: MAX_USERS_LOOKUP_LIMIT
     });
 }
+
+export const findUser = async (where) => {
+    return await db.User.findOne({where});
+}
