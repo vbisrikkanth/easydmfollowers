@@ -2,7 +2,7 @@ import Twitter from 'twitter-lite';
 import { setVariables, getVariables } from './state_variables';
 import { getActiveJob, scheduleNewJob, closeActiveJob } from './follower-job';
 import { scheduleCron } from './cron-service';
-import { bulkCreate, findUnSyncedUsers } from './user';
+import { bulkCreate, findUnSyncedUsers, findUserId } from './user';
 import { TWITTER_CLIENT_STATE, FOLLOWER_SYNC_STATUS } from '../constants';
 import logger from '../utils/logger';
 class TwitterAdapter {
@@ -10,6 +10,7 @@ class TwitterAdapter {
     constructor() {
         this.clientState = TWITTER_CLIENT_STATE.NOT_INITIALIZED;
         this.isSyncingFollowersDetail = false;
+        this.totalFollowersSynced = 0;
     }
 
     verifyAndSetTwitterKeys = async ({ consumer_key, consumer_secret, access_token_key, access_token_secret }) => {
@@ -48,7 +49,7 @@ class TwitterAdapter {
             };
 
         } catch (e) {
-            console.log(e)
+            logger.info("TwitterAdapter -> setTwitterKeys -> Error", e)
             this.client = null;
             this.clientState = TWITTER_CLIENT_STATE.TOKEN_FAILED;
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Failed");
@@ -72,7 +73,7 @@ class TwitterAdapter {
             const followers = await this.client.get("followers/ids", {
                 cursor,
                 count: 5000,
-                screen_name: "balajis",
+                //screen_name: "balajis",
                 stringify_ids: true
             });
 
@@ -104,7 +105,7 @@ class TwitterAdapter {
         catch (e) {
             logger.info("TwitterAdapter -> syncFollowersId -> errors", e.errors[0].code);
             if (e.errors[0].code !== 88) { return; }
-            scheduled = new Date(parseInt((e._headers.get('x-rate-limit-reset')) + 30) * 1000);
+            scheduled = new Date((parseInt(e._headers.get('x-rate-limit-reset')) + 45) * 1000);
         }
         logger.info("TwitterAdapter -> syncFollowersId -> scheduleNewJob -> limitReset", scheduled);
         await scheduleNewJob({ cursor, scheduled });
@@ -117,8 +118,8 @@ class TwitterAdapter {
         if (!this.isSyncingFollowersDetail) {
             this.isSyncingFollowersDetail = true;
             let unSyncedFollowerIds = (await findUnSyncedUsers()).map(user => user.get("id_str"));
-            console.log("syncFollowersDetail -> unSyncedFollowerIds -> first", unSyncedFollowerIds.length);
-            console.log("syncFollowersDetail -> isSyncingFollowersDetail", this.isSyncingFollowersDetail);
+            logger.info("syncFollowersDetail -> unSyncedFollowerIds -> first", unSyncedFollowerIds.length);
+            logger.info("syncFollowersDetail -> isSyncingFollowersDetail", this.isSyncingFollowersDetail);
             while (unSyncedFollowerIds.length > 0) {
                 try {
                     let users = await this.client.post("users/lookup", {
@@ -126,18 +127,21 @@ class TwitterAdapter {
                     });
                     const syncedUsers = users.map(user => {
                         const userIndex = unSyncedFollowerIds.indexOf(user.id_str)
-                        unSyncedFollowerIds.splice(userIndex,1);
+                        unSyncedFollowerIds.splice(userIndex, 1);
                         return {
                             ...user,
                             status: FOLLOWER_SYNC_STATUS.SYNCED
                         }
                     });
                     await bulkCreate(syncedUsers);
-                    console.log("syncFollowersDetail -> syncedUsers", syncedUsers.length);
+
+                    this.totalFollowersSynced += syncedUsers.length;
+                    logger.info("syncFollowersDetail -> syncedUsers", syncedUsers.length);
+                    logger.info("syncFollowersDetail -> totalFollowersSynced", this.totalFollowersSynced);
                 } catch (e) {
                     logger.info("TwitterAdapter -> syncFollowersDetail -> errors", e);
                     if (e.errors[0].code === 88) {
-                        scheduled = new Date(e._headers.get('x-rate-limit-reset') * 1000);
+                        scheduled = new Date((parseInt(e._headers.get('x-rate-limit-reset')) + 45) * 1000);
                         scheduleCron(scheduled, () => {
                             this.syncFollowersDetail();
                         });
@@ -153,7 +157,7 @@ class TwitterAdapter {
                     });
                     await bulkCreate(failedUsers);
                     unSyncedFollowerIds = (await findUnSyncedUsers()).map(user => user.get("id_str"));
-                    console.log("syncFollowersDetail -> unSyncedFollowerIds", unSyncedFollowerIds.length);
+                    logger.info("syncFollowersDetail -> unSyncedFollowerIds", unSyncedFollowerIds.length);
                 }
             }
             this.isSyncingFollowersDetail = false;
@@ -170,7 +174,7 @@ class TwitterAdapter {
                 const syncJob = this.getSyncJob();
                 this.activeCron = scheduleCron(scheduled, syncJob);
             }
-            else {        
+            else {
                 this.syncFollowersId(cursor);
             }
         }
@@ -198,6 +202,28 @@ class TwitterAdapter {
         }
         logger.info("TwitterAdapter -> syncFollower -> initSynFollowersCron");
         await this.initSynFollowersCron(force);
+    }
+
+    sendDM = async ({ user, text }) => {
+        const type = "message_create";
+        const recipient_id = user.get("id_str");
+        const userName = user.get("name");
+        text = text.replace(/\[user_name\]/g, userName);
+
+        await this.client.post("direct_messages/events/new", {
+            event: {
+                type,
+                message_create: {
+                    target: {
+                        recipient_id
+                    },
+                    message_data: {
+                        text
+                    }
+                }
+            }
+        });
+        logger.info("TwitterAdapter -> sendDM -> Message Sent");
     }
 }
 

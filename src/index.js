@@ -2,7 +2,7 @@ import { initDB } from './models'
 import TwitterAdapter from './services/twitter_adapter';
 import CampaignAdapter from './services/campaign_adapter';
 import { createCampaign, getCampaignUserPaginated, getAllActiveCampaign } from './services/campaign';
-import { findAllUsers, findUsersCount, findAllPaginatedUsers } from './services/user';
+import { findAllUsers, findUsersCount, findAllPaginatedUsers, findUser } from './services/user';
 import { createList, updateList, getAllLists, getList } from './services/list';
 
 class EasyDMCore {
@@ -57,6 +57,14 @@ class EasyDMCore {
     async getSegment(id) {
         return (await getList(id)).toJSON();
     }
+    
+    //---- DM ---- //
+
+    async sendDM({recipient,text}) {
+        const where = { screen_name: recipient };
+        const user = await findUser(where);
+        return (await this.twitterAdapter.sendDM({user,text}));
+    }
 
     async createCampaign(params) {
         return (await createCampaign(params)).toJSON();
@@ -78,7 +86,8 @@ class EasyDMCore {
         }));
     }
     static publicMethods = ["getPaginatedFollowers", "getFollowers", "getFollowersCount", "getUserObject", "syncFollowers", "setKeys", "createSegment",
-        "updateSegment", "getSegments", "getSegment"]
+        "updateSegment", "getSegments", "getSegment", "sendDM"]
+
 
 }
 

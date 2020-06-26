@@ -7,6 +7,10 @@ async function test3() {
     let userObject = await easyDMCore.getUserObject();
     if (!userObject) {
         userObject = await easyDMCore.setKeys({
+            consumer_key: "",
+            consumer_secret: "",
+            access_token_key: "",
+            access_token_secret: ""
         });
 
         if (userObject) {
@@ -75,4 +79,42 @@ async function test9() {
     console.log(await easyDMCore.getAllActiveCampaign())
 }
 
+async function test10() {
+    console.log(await easyDMCore.getFollowersCount(), "Count");
+}
+
+async function test11() {
+    let userObject = await easyDMCore.getUserObject();
+    if (!userObject) {
+        userObject = await easyDMCore.setKeys({
+            consumer_key: "",
+            consumer_secret: "",
+            access_token_key: "",
+            access_token_secret: ""
+        });
+
+        if (userObject) {
+            const users = await easyDMCore.getFollowers();
+
+            await users.forEach(async (user) => {
+                const recipient = user.screen_name;
+                const text = "https://valq.com\nHello [user_name]! \n- from Hell Paradise";
+                await easyDMCore.sendDM({ recipient, text });
+            });
+        } else {
+            console.log("Key authentication failed")
+        }
+    }
+    else {
+        const users = await easyDMCore.getFollowers();
+
+        await users.forEach(async (user) => {
+            const recipient = user.screen_name;
+            const text = "https://valq.com\nHello [user_name]! \n- from Hell Paradise";
+            await easyDMCore.sendDM({ recipient, text });
+        });
+    }
+}
+// test5();
+//test3();
 test9();
