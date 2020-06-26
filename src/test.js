@@ -7,45 +7,72 @@ async function test3() {
     let userObject = await easyDMCore.getUserObject();
     if (!userObject) {
         userObject = await easyDMCore.setKeys({
-            consumer_key: "d9NU6wtENpB7il52fi1B1QmEY",
-            consumer_secret: "DOEbDkSMKapZSy9VaY5f11dtMiASxaIAKurSRG4eaj2V4VK5ve",
-            access_token_key: "3075255631-HhDNzE0SioFxb8dy0kapEvs8rhFMUp4I0ARgDf8",
-            access_token_secret: "4p19sW9uzJo04xu32QdWXZMwG2WGMJZavv37qzcqPtMvs"
         });
 
-        if(userObject) {
-             easyDMCore.syncFollowers(true);
-        }else{
+        if (userObject) {
+            easyDMCore.syncFollowers(true);
+        } else {
             console.log("Key authentication failed")
         }
     }
-    else{
+    else {
         easyDMCore.syncFollowers(true);
     }
 };
 
+async function test5() {
+    const res = await easyDMCore.getPaginatedFollowers({
+        limit: 100, offset: 0, order: [
+            ["followers_count", "ASC"],
+            ["friends_count", "DESC"]
+        ]
+    });
+    console.log(res.length);
 
+}
 async function test4() {
     const newSegment = {
-        name: "Segment1",
+        name: "Segment2",
         description: "This is a test Segment",
         filters: {
-            where: {
-                followers_count:{
-                    gt : 100
+            filterType: "AND",
+            conditions: [
+                {
+                    id: "followers_count",
+                    operator: "GT",
+                    value: 5000
                 }
-            },
-            limit: 100
+            ]
         }
     }
-
     //const createdSegment = await easyDMCore.createSegment(newSegment);
     //console.log(await easyDMCore.getSegment(createdSegment.id));
-    console.log(await easyDMCore.getSegments());
+    console.log(await easyDMCore.createSegment(newSegment));
 }
 
-async function test5(){
-    console.log(await easyDMCore.getFollowersCount(),"Count");
+
+//13,20
+async function test7() {
+    console.log((await easyDMCore.getPaginatedFollowers({
+        segmentId: 21,
+        order: [["friends_count", "DESC"]]
+    })).length);
 }
-// test5();
-test3();
+
+async function test8() {
+    console.log((await easyDMCore.createCampaign({
+        name: "Campaign 1",
+        message: "Hi [user_name], Check out the link",
+        allocated_msg_count: 500,
+        description: "For segment 13 and 20",
+        scheduled_time: 870,
+        segmentIds: [13, 20]
+    })));
+}
+
+async function test9() {
+    // console.log((await easyDMCore.getCampaignUserPaginated({ id: 8, limit: 10 })));
+    console.log(await easyDMCore.getAllActiveCampaign())
+}
+
+test9();
