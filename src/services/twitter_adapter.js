@@ -1,5 +1,5 @@
 import Twitter from 'twitter-lite';
-import { setVariables, getVariables } from './state_variables';
+import { setVariables, getVariables, getVariable } from './state_variables';
 import { getActiveJob, scheduleNewJob, closeActiveJob } from './follower-job';
 import { scheduleCron } from './cron-service';
 import { bulkCreate, findUnSyncedUsers } from './user';
@@ -14,18 +14,21 @@ class TwitterAdapter {
     }
 
     verifyAndSetTwitterKeys = async ({ consumer_key, consumer_secret, access_token_key, access_token_secret }) => {
-        this.client = new Twitter({
-            subdomain: "api", // "api" is the default (change for other subdomains)
-            version: "1.1", // version "1.1" is the default (change for other subdomains)
-            consumer_key,
-            consumer_secret,
-            access_token_key,
-            access_token_secret
-        });
-
         try {
-            const authResponse = (await this.client.get("account/verify_credentials"));
+            const client = new Twitter({
+                subdomain: "api", // "api" is the default (change for other subdomains)
+                version: "1.1", // version "1.1" is the default (change for other subdomains)
+                consumer_key,
+                consumer_secret,
+                access_token_key,
+                access_token_secret
+            });
+            const authResponse = (await client.get("account/verify_credentials"));
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Verified");
+            const existingUserID = await getVariable("id_str");
+            if (existingUserID && existingUserID !== authResponse.id_str) {
+                return { error: 1 }
+            }
             await setVariables([
                 { property: "consumer_key", value: consumer_key },
                 { property: "consumer_secret", value: consumer_secret },
@@ -39,21 +42,28 @@ class TwitterAdapter {
                 { property: "friends_count", value: authResponse.friends_count },
                 { property: "verified", value: authResponse.verified }
             ]);
+            this.client = client;
             this.clientState = TWITTER_CLIENT_STATE.INITIALIZED;
             return {
                 consumer_key,
                 consumer_secret,
                 access_token_key,
                 access_token_secret,
-                ...authResponse
+                id_str: authResponse.id_str,
+                screen_name: authResponse.screen_name,
+                name: authResponse.name,
+                profile_image_url_https: authResponse.profile_image_url_https,
+                followers_count: authResponse.followers_count,
+                verified: authResponse.verified,
+                friends_count: authResponse.friends_count
             };
 
         } catch (e) {
-            logger.info("TwitterAdapter -> setTwitterKeys -> Error", e)
+            // logger.info("TwitterAdapter -> setTwitterKeys -> Error", e)
             this.client = null;
             this.clientState = TWITTER_CLIENT_STATE.TOKEN_FAILED;
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Failed");
-            return false;
+            return { error: 2 }
         }
     }
 
@@ -112,8 +122,13 @@ class TwitterAdapter {
         const job = this.getSyncJob(cursor);
         this.activeCron = scheduleCron(scheduled, job);
     }
-
-
+    
+    reset = () => {
+        if(this.activeCron){
+            clearTimeout(this.activeCron);
+        }
+        this.client = null;
+    }
     syncFollowersDetail = async () => {
         if (!this.isSyncingFollowersDetail) {
             this.isSyncingFollowersDetail = true;
@@ -181,6 +196,7 @@ class TwitterAdapter {
     }
 
     initSynFollowersCron = async (force = false) => {
+        this.syncFollowersDetail();
         let activeJob = await getActiveJob();
         if (!activeJob && !force) { // This is the case when app is reopened and sync is already completed
             logger.info("TwitterAdapter -> initSynFollowersCron -> no activeJob, no force");
@@ -190,7 +206,6 @@ class TwitterAdapter {
             await scheduleNewJob({ cursor: -1, scheduled: new Date() })
         const syncJob = this.getSyncJob();
         syncJob();
-        this.syncFollowersDetail();
     }
 
     syncFollowers = async (force) => {

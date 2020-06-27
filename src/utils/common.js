@@ -4,7 +4,7 @@ export const getCurrentTimeMinutes = () => {
     return (now.getHours() * 60) + now.getMinutes();
 }
 
-export const getTimeStamp = (minutes,dayOffset) => {
+export const getTimeStamp = (minutes,dayOffset = 0) => {
     const date = new Date();
     date.setHours(Math.floor(minutes / 60), minutes % 60, 0);
     if(dayOffset){

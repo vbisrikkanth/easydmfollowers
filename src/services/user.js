@@ -22,7 +22,7 @@ export const bulkCreate = async (users) => {
 }
 
 export const findAllPaginatedUsers = async ({ where, order, limit, offset, segmentIds }) => {
-    if (segmentIds) {
+    if (segmentIds && segmentIds.length !== 0) {
         where = {
             [Op.or]: (await getLists(segmentIds)).map(list => processFilters(list.get("filters")))
         }
@@ -34,7 +34,7 @@ export const findAllPaginatedUsers = async ({ where, order, limit, offset, segme
     if (!limit || limit > MAX_QUERY_LIMIT) {
         limit = MAX_QUERY_LIMIT;
     }
-    return await db.User.findAll({
+    return await db.User.findAndCountAll({
         limit,
         offset,
         where,
@@ -79,4 +79,11 @@ export const findUnSyncedUsers = async () => {
 
 export const findUser = async (where) => {
     return await db.User.findOne({ where });
+}
+
+export const deleteAllUsers = async () => {
+    await db.User.destroy({
+        where: {},
+        truncate: true
+    });
 }

@@ -1,9 +1,10 @@
 import { initDB } from './models'
 import TwitterAdapter from './services/twitter_adapter';
 import CampaignAdapter from './services/campaign_adapter';
-import { getCampaignUserPaginated, getAllCampaigns } from './services/campaign';
-import { findAllUsers, findUsersCount, findAllPaginatedUsers, findUser } from './services/user';
-import { createList, updateList, getAllLists, getList, deleteList } from './services/list';
+import { getCampaignUserPaginated, getAllCampaigns, getCampaign, deleteAllCampaigns } from './services/campaign';
+import { findAllUsers, findUsersCount, findAllPaginatedUsers, findUser, deleteAllUsers } from './services/user';
+import { createList, updateList, getAllLists, getList, deleteList, deleteAllLists } from './services/list';
+import { deleteAllVariables } from './services/state_variables';
 
 class EasyDMCore {
     constructor(connectionString) {
@@ -30,7 +31,9 @@ class EasyDMCore {
     //---- Followers ---- //
 
     async getPaginatedFollowers(params) {
-        return (await findAllPaginatedUsers(params)).map(user => user.toJSON());
+        const result = (await findAllPaginatedUsers(params));
+        result.rows = result.rows.map(user => user.toJSON());
+        return result;
     }
 
     async getFollowers(where = {}) {
@@ -88,9 +91,14 @@ class EasyDMCore {
         return (await getAllCampaigns(params)).map(campaign => campaign.toJSON());
     }
 
+    async getCampaign(id) {
+        return (await getCampaign(id)).toJSON();
+    }
+
 
     async getCampaignUserPaginated(params) {
-        return (await getCampaignUserPaginated(params)).map((campaignUser => {
+        const result =  await getCampaignUserPaginated(params);
+        result.rows = result.rows.map((campaignUser => {
             campaignUser = campaignUser.toJSON();
             const user = campaignUser.User;
             delete campaignUser.User
@@ -99,9 +107,20 @@ class EasyDMCore {
                 ...campaignUser
             }
         }));
+        return result;
+        
     }
     async getAllMissedCampaigns() {
         return (await this.campaignAdapter.getAllMissedCampaigns()).map(campaign => campaign.toJSON());
+    }
+
+    async reset(){
+        this.campaignAdapter.reset();
+        await deleteAllCampaigns();
+        await deleteAllLists();
+        await deleteAllUsers();
+        await deleteAllVariables();
+        this.twitterAdapter.reset();
     }
 }
 

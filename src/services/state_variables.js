@@ -28,3 +28,10 @@ export const getVariables = async (propertyNames) => {
         return acc;
     }), {});
 }
+
+export const deleteAllVariables= async () => {
+    await db.StateVariable.destroy({
+        where: {},
+        truncate: true
+    });
+}
