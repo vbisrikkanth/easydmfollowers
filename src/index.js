@@ -1,7 +1,7 @@
 import { initDB } from './models'
 import TwitterAdapter from './services/twitter_adapter';
 import CampaignAdapter from './services/campaign_adapter';
-import { getCampaignUserPaginated, getAllActiveCampaign } from './services/campaign';
+import { getCampaignUserPaginated, getAllCampaigns } from './services/campaign';
 import { findAllUsers, findUsersCount, findAllPaginatedUsers, findUser } from './services/user';
 import { createList, updateList, getAllLists, getList, deleteList } from './services/list';
 
@@ -84,9 +84,10 @@ class EasyDMCore {
         return (await this.campaignAdapter.deleteCampaign(id)).toJSON();
     }
 
-    async getAllActiveCampaign() {
-        return (await getAllActiveCampaign()).map(campaign => campaign.toJSON());
+    async getAllCampaigns(params) {
+        return (await getAllCampaigns(params)).map(campaign => campaign.toJSON());
     }
+
 
     async getCampaignUserPaginated(params) {
         return (await getCampaignUserPaginated(params)).map((campaignUser => {
@@ -100,8 +101,7 @@ class EasyDMCore {
         }));
     }
     async getAllMissedCampaigns() {
-        const { missedCampaigns } = await this.campaignAdapter.getAllMissedCampaigns();
-        return missedCampaigns.map(campaign => campaign.toJSON());
+        return (await this.campaignAdapter.getAllMissedCampaigns()).map(campaign => campaign.toJSON());
     }
 }
 

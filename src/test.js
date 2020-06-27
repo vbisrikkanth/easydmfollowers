@@ -1,5 +1,5 @@
+require('dotenv').config()
 import EasyDMCore from './index'
-
 
 const easyDMCore = new EasyDMCore("jupiter.sqlite");
 
@@ -7,10 +7,10 @@ async function test3() {
     let userObject = await easyDMCore.getUserObject();
     if (!userObject) {
         userObject = await easyDMCore.setKeys({
-            consumer_key: "",
-            consumer_secret: "",
-            access_token_key: "",
-            access_token_secret: ""
+            consumer_key: process.env.consumer_key,
+            consumer_secret: process.env.consumer_secret,
+            access_token_key: process.env.access_token_key,
+            access_token_secret: process.env.access_token_secret
         });
 
         if (userObject) {
@@ -23,31 +23,55 @@ async function test3() {
         easyDMCore.syncFollowers(true);
     }
 };
+// 1 users
+const filter1 = {
+    filterType: "AND",
+    conditions: [
+        {
+            id: "followers_count",
+            operator: "GT",
+            value: 3000
+        },
+        {
+            id: "friends_count",
+            operator: "LT",
+            value: 10
+        }
+    ]
+}
 
+// 2 user
+const filter2 = {
+    filterType: "AND",
+    conditions: [
+        {
+            id: "followers_count",
+            operator: "GT",
+            value: 3000
+        },
+        {
+            id: "friends_count",
+            operator: "LT",
+            value: 400
+        }
+    ]
+}
 async function test5() {
     const res = await easyDMCore.getPaginatedFollowers({
         limit: 100, offset: 0, order: [
-            ["followers_count", "ASC"],
+            // ["followers_count", "ASC"],
             ["friends_count", "DESC"]
-        ]
+        ],
+        segmentIds:[1,2]
     });
     console.log(res.length);
 
 }
 async function test4() {
     const newSegment = {
-        name: "Segment2",
+        name: "Segment 2",
         description: "This is a test Segment",
-        filters: {
-            filterType: "AND",
-            conditions: [
-                {
-                    id: "followers_count",
-                    operator: "GT",
-                    value: 5000
-                }
-            ]
-        }
+        filters:filter2
     }
     //const createdSegment = await easyDMCore.createSegment(newSegment);
     //console.log(await easyDMCore.getSegment(createdSegment.id));
@@ -55,28 +79,20 @@ async function test4() {
 }
 
 
-//13,20
-async function test7() {
-    console.log((await easyDMCore.getPaginatedFollowers({
-        segmentId: 21,
-        order: [["friends_count", "DESC"]]
-    })).length);
-}
-
 async function test8() {
     console.log((await easyDMCore.createCampaign({
         name: "Campaign 1",
         message: "Hi [user_name], Check out the link",
         allocated_msg_count: 500,
-        description: "For segment 13 and 20",
-        scheduled_time: 870,
-        segmentIds: [13, 20]
+        description: "For segment 1 and 2",
+        scheduled_time: 834,
+        segmentIds: [1, 2]
     })));
 }
 
 async function test9() {
-    // console.log((await easyDMCore.getCampaignUserPaginated({ id: 8, limit: 10 })));
-    console.log(await easyDMCore.getAllActiveCampaign())
+    console.log(await easyDMCore.getAllCampaigns())
+    // console.log((await easyDMCore.getCampaignUserPaginated({ id: 26})).length);
 }
 
 async function test10() {
@@ -115,6 +131,8 @@ async function test11() {
         });
     }
 }
-// test5();
-//test3();
-test9();
+test8();
+// test3();
+// test9();
+// test7();
+// test4();

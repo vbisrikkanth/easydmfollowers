@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     scheduled: DataTypes.DATE,
     ran_at: DataTypes.DATE
   }, {});
-  FollowersJob.associate = function(models) {
+  FollowersJob.associate = function (models) {
     // associations can be defined here
   };
   return FollowersJob;

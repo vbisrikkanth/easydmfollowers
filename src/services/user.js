@@ -1,7 +1,7 @@
 import Op from 'sequelize/lib/operators';
 import db from '../models';
-import { getList } from './list';
-import { FOLLOWER_SYNC_STATUS, MAX_QUERY_LIMIT, MAX_QUERY_LIMIT_RAW } from '../constants';
+import { getLists } from './list';
+import { FOLLOWER_SYNC_STATUS, MAX_QUERY_LIMIT, MAX_QUERY_LIMIT_RAW, MAX_USERS_LOOKUP_LIMIT } from '../constants';
 import { processFilters } from '../utils/common';
 
 const addBaseCondition = (where) => {
@@ -23,9 +23,12 @@ export const bulkCreate = async (users) => {
 
 export const findAllPaginatedUsers = async ({ where, order, limit, offset, segmentIds }) => {
     if (segmentIds) {
-        where =  {
-            [Op.or]: (await getListFilters(segmentIds)).map(processFilters)
+        where = {
+            [Op.or]: (await getLists(segmentIds)).map(list => processFilters(list.get("filters")))
         }
+    }
+    else if (where) {
+        where = processFilters(where)
     }
     where = addBaseCondition(where);
     if (!limit || limit > MAX_QUERY_LIMIT) {
@@ -75,5 +78,5 @@ export const findUnSyncedUsers = async () => {
 }
 
 export const findUser = async (where) => {
-    return await db.User.findOne({where});
+    return await db.User.findOne({ where });
 }

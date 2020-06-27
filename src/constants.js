@@ -6,8 +6,7 @@ export const FOLLOWER_SYNC_STATUS = {
 }
 
 export const CAMPAIGN_STATUS = {
-    NOT_STARTED: 10,
-    RUNNING: 20,
+    SCHEDULED: 10,
     PAUSED: 30,
     DONE: 40
 }
@@ -39,11 +38,13 @@ export const MAX_USERS_LOOKUP_LIMIT = 100;
 export const DAILY_DM_LIMIT = 1000;
 
 export const FILTER_OPERATOR_MAP = {
-    EQ : eq,
-    OR : or,
-    AND : and,
-    GT : gt,
-    GTE : gte,
-    LT : lt,
-    LTE : lte,
+    EQ: eq,
+    OR: or,
+    AND: and,
+    GT: gt,
+    GTE: gte,
+    LT: lt,
+    LTE: lte,
 };
+
+export const SEND_MESSAGE_ENABLED = false;

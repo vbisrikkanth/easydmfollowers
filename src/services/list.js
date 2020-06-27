@@ -12,18 +12,17 @@ export const getList = async (id) => {
 }
 
 export const deleteList = async (id) => {
-   const list =  await db.List.findByPk(id);
-   return await list.destroy();
+    const list = await db.List.findByPk(id);
+    return await list.destroy();
 }
 
 
-export const getListFilters = async (ids) => {
-    const lists = await db.List.findAll({
+export const getLists = async (ids) => {
+    return await db.List.findAll({
         where: {
             id: ids
         }
     });
-    return lists.map(list => list.get("filters"));
 }
 
 

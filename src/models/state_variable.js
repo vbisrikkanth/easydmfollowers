@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     value: DataTypes.STRING
   }, {});
-  StateVariable.associate = function(models) {
+  StateVariable.associate = function (models) {
   };
   return StateVariable;
 };

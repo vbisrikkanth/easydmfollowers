@@ -1,7 +1,7 @@
 import Op from 'sequelize/lib/operators';
 import db from '../models';
-import { getListFilters } from './list';
-import { CAMPAIGN_STATUS, MAX_QUERY_LIMIT_RAW, MAX_QUERY_LIMIT } from '../constants';
+import { getLists } from './list';
+import { CAMPAIGN_STATUS, MAX_QUERY_LIMIT_RAW, MAX_QUERY_LIMIT, CAMPAIGN_MESSAGE_STATUS } from '../constants';
 import { findAllPaginatedUsersRaw } from './user';
 import { processFilters } from '../utils/common';
 
@@ -17,21 +17,37 @@ export const deleteCampaign = async (id) => {
 }
 
 export const getAllActiveCampaign = async () => {
-    return await db.Campaign.findAll({ where: { status: CAMPAIGN_STATUS.RUNNING } });
+    return await db.Campaign.findAll({ where: { status: CAMPAIGN_STATUS.SCHEDULED } });
+}
+
+export const getAllCampaigns = async (params) => {
+    return await db.Campaign.findAll(params);
 }
 
 export const createCampaign = async ({ name, message, allocated_msg_count, description, segmentIds = [], order, scheduled_time }) => {
+
+    let where = {};
+    const metadata = { order }
+    if (segmentIds.length !== 0) {
+        const lists = await getLists(segmentIds);
+        where[Op.or] = [];
+        metadata.segments = [];
+        lists.forEach(list => {
+            list = list.toJSON();
+            where[Op.or].push(processFilters(list.filters));
+            metadata.segments.push(list);
+        });
+    }
     const campaign = await db.Campaign.create({
         name,
         message,
         allocated_msg_count,
         description,
         scheduled_time,
-        status: CAMPAIGN_STATUS.RUNNING
+        metadata,
+        status: CAMPAIGN_STATUS.SCHEDULED
     });
-    const where = segmentIds.length === 0 ? {} : {
-        [Op.or]: (await getListFilters(segmentIds)).map(processFilters)
-    }
+
     let offset = 0;
     let users;
     do {
@@ -58,5 +74,15 @@ export const getCampaignUserPaginated = async ({ id, limit, offset, order }) => 
         include: [{
             model: db.User,
         }]
+    })
+}
+
+export const getCampaignScheduledUsers = async ({ id, limit }) => {
+    return await db.CampaignUser.findAll({
+        where: {
+            campaign_id: id,
+            status: CAMPAIGN_MESSAGE_STATUS.SCHEDULED 
+        },
+        limit
     })
 }
