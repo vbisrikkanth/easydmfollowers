@@ -60,7 +60,6 @@ export const createCampaign = async ({ name, message, allocated_msg_count, descr
         users = await findAllPaginatedUsersRaw({ offset, where, order });
         await campaign.addUsers(users);
         offset = offset + MAX_QUERY_LIMIT_RAW
-        console.log({ offset })
     } while (users.length >= MAX_QUERY_LIMIT_RAW);
     users = null;
     return campaign;
@@ -95,7 +94,6 @@ export const getCampaignScheduledUsers = async ({ id, limit }) => {
 }
 
 export const deleteAllCampaigns = async () => {
-    console.log("here")
     await db.CampaignUser.destroy({
         where: {},
         truncate: true

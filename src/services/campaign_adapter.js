@@ -49,7 +49,6 @@ class CampaignAdapter {
     reset = () => {
         Object.keys(this.campaignCronMap).forEach(key => {
             clearTimeout(this.campaignCronMap[key]);
-            console.log("Clr")
         });
     }
 
@@ -90,7 +89,6 @@ class CampaignAdapter {
                 campaignUser.status = CAMPAIGN_MESSAGE_STATUS.SEND;
             }
             catch (e) {
-                console.log(e.errors);
                 if (e.errors[0].code === 88) {
                     job.status = CAMPAIGN_MESSAGE_STATUS.LIMIT_EXCEEDED
                     break;

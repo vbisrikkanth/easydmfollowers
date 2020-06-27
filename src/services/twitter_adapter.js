@@ -23,7 +23,6 @@ class TwitterAdapter {
                 access_token_key,
                 access_token_secret
             });
-            console.log({ consumer_key, consumer_secret, access_token_key, access_token_secret })
             const authResponse = (await client.get("account/verify_credentials"));
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Verified");
             const existingUserID = await getVariable("id_str");
