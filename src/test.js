@@ -20,9 +20,10 @@ async function test3() {
         }
     }
     else {
-        easyDMCore.syncFollowers(true);
+        easyDMCore.syncFollowers();
     }
 };
+// test3();
 // 1 users
 const filter1 = {
     filterType: "AND",
@@ -62,21 +63,23 @@ async function test5() {
             // ["followers_count", "ASC"],
             ["friends_count", "DESC"]
         ],
-        segmentIds: [1, 2]
+        segmentIds:[1,2]
     });
-    console.log(res.length);
+    console.log(res);
 
 }
 async function test4() {
     const newSegment = {
-        name: "Segment 2",
+        name: "Segment 1",
         description: "This is a test Segment",
-        filters: filter2
+        filters:filter1
     }
     //const createdSegment = await easyDMCore.createSegment(newSegment);
     //console.log(await easyDMCore.getSegment(createdSegment.id));
     console.log(await easyDMCore.createSegment(newSegment));
 }
+
+// test4();
 
 
 async function test8() {
@@ -86,15 +89,15 @@ async function test8() {
         allocated_msg_count: 500,
         description: "For segment 1 and 2",
         scheduled_time: 834,
-        segmentIds: [1, 2]
+        segmentIds:[]
     })));
 }
-
+// test8();
 async function test9() {
-    console.log(await easyDMCore.getAllCampaigns())
-    // console.log((await easyDMCore.getCampaignUserPaginated({ id: 26})).length);
+    // console.log(await easyDMCore.getAllCampaigns())
+    console.log((await easyDMCore.getCampaignUserPaginated({ id: 6})).count);
 }
-
+// test9();
 async function test10() {
     console.log(await easyDMCore.getFollowersCount(), "Count");
 }
@@ -123,9 +126,15 @@ async function test11() {
         console.log( await easyDMCore.sendDM({ recipients, text }) );
     }
 }
-// test8();
+
+async function test12() {
+    // console.log(await easyDMCore.deleteCampaign(5));
+    console.log(await easyDMCore.reset());
+}
+
+test12();
+// test12();
 // test3();
 // test9();
 // test7();
 // test4();
-test11();
