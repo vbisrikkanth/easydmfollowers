@@ -3,7 +3,7 @@ const EXPORTED_METHODS = [
     "getPaginatedFollowers", "getFollowers", "getFollowersCount",
     "createSegment", "deleteSegment", "updateSegment", "getSegments", "getSegment",
     "sendDM",
-    "createCampaign", "updateCampaign", "deleteCampaign", "getAllCampaigns", "getCampaignUserPaginated", "getAllMissedCampaigns"
+    "createCampaign", "getCampaign", "updateCampaign", "deleteCampaign", "getAllCampaigns", "getCampaignUserPaginated", "getAllMissedCampaigns"
 ]
 
 export default EXPORTED_METHODS;

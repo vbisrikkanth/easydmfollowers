@@ -11,8 +11,14 @@ export const getCampaign = async (id) => {
 export const updateCampaign = async (id, properties) => {
     return await db.Campaign.update(properties, { where: { id } });
 }
-export const deleteCampaign = async (id) => {
-    const campaign = await db.Campaign.findByPk(id);
+export const deleteCampaign = async (campaign_id) => {
+    const campaign = await db.Campaign.findByPk(campaign_id);
+    await db.CampaignUser.destroy({
+        where: { campaign_id }
+    })
+    await db.CampaignJobHistory.destroy({
+        where: { campaign_id }
+    });
     return await campaign.destroy();
 }
 
@@ -54,6 +60,7 @@ export const createCampaign = async ({ name, message, allocated_msg_count, descr
         users = await findAllPaginatedUsersRaw({ offset, where, order });
         await campaign.addUsers(users);
         offset = offset + MAX_QUERY_LIMIT_RAW
+        console.log({ offset })
     } while (users.length >= MAX_QUERY_LIMIT_RAW);
     users = null;
     return campaign;
@@ -64,7 +71,7 @@ export const getCampaignUserPaginated = async ({ id, limit, offset, order }) => 
     if (!limit || limit > MAX_QUERY_LIMIT) {
         limit = MAX_QUERY_LIMIT;
     }
-    return await db.CampaignUser.findAll({
+    return await db.CampaignUser.findAndCountAll({
         where: {
             campaign_id: id
         },
@@ -81,8 +88,25 @@ export const getCampaignScheduledUsers = async ({ id, limit }) => {
     return await db.CampaignUser.findAll({
         where: {
             campaign_id: id,
-            status: CAMPAIGN_MESSAGE_STATUS.SCHEDULED 
+            status: CAMPAIGN_MESSAGE_STATUS.SCHEDULED
         },
         limit
     })
+}
+
+export const deleteAllCampaigns = async () => {
+    console.log("here")
+    await db.CampaignUser.destroy({
+        where: {},
+        truncate: true
+    });
+    await db.CampaignJobHistory.destroy({
+        where: {},
+        truncate: true
+    });
+    await db.Campaign.destroy({
+        where: {},
+        truncate: true
+    });
+    return true;
 }

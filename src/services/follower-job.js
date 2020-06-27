@@ -27,3 +27,11 @@ export const getActiveJob = async () => {
         }
     });
 }
+
+
+export const deleteAllJobs = async () => {
+    await db.FollowersJob.destroy({
+        where: {},
+        truncate: true
+    });
+}

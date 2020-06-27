@@ -33,3 +33,10 @@ export const updateList = async (id, properties) => {
 export const getAllLists = async () => {
     return await db.List.findAll();
 }
+
+export const deleteAllLists = async () => {
+    await db.List.destroy({
+        where: {},
+        truncate: true
+    });
+}

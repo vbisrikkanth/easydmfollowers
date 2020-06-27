@@ -46,6 +46,13 @@ class CampaignAdapter {
         return await deleteCampaign(id);
     }
 
+    reset = () => {
+        Object.keys(this.campaignCronMap).forEach(key => {
+            clearTimeout(this.campaignCronMap[key]);
+            console.log("Clr")
+        });
+    }
+
     scheduleCronForCampaign = (campaign) => {
         const id = campaign.get("id");
         const status = campaign.get("status");
@@ -85,8 +92,7 @@ class CampaignAdapter {
             catch (e) {
                 console.log(e.errors);
                 if (e.errors[0].code === 88) {
-                    job.status = JOB_STATUS.LIMIT_EXCEEDED
-                    await job.save();
+                    job.status = CAMPAIGN_MESSAGE_STATUS.LIMIT_EXCEEDED
                     break;
                 }
                 campaignUser.status = CAMPAIGN_MESSAGE_STATUS.FAILED;

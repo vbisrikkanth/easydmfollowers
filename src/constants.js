@@ -1,4 +1,4 @@
-import { and, or, gt, gte, lt, lte, eq } from 'sequelize/lib/operators';
+import { and, or, gt, gte, lt, lte, eq, contains } from 'sequelize/lib/operators';
 export const FOLLOWER_SYNC_STATUS = {
     NOT_SYNCED: 10,
     FAILED: 30,
@@ -14,8 +14,14 @@ export const CAMPAIGN_STATUS = {
 export const JOB_STATUS = {
     SCHEDULED: 10,
     FAILED: 30,
-    LIMIT_EXCEEDED: 50,
     DONE: 40
+}
+
+
+export const CAMPAIGN_JOB_STATUS = {
+    SUCCESS: 10,
+    FAILED: 30,
+    LIMIT_EXCEEDED: 50
 }
 
 export const CAMPAIGN_MESSAGE_STATUS = {
@@ -31,7 +37,7 @@ export const TWITTER_CLIENT_STATE = {
 }
 
 export const MAX_QUERY_LIMIT = 100;
-export const MAX_QUERY_LIMIT_RAW = 10;
+export const MAX_QUERY_LIMIT_RAW = 5000;
 export const MAX_USERS_LOOKUP_LIMIT = 100;
 
 // TBD Need update it using rate limit it api
@@ -45,6 +51,7 @@ export const FILTER_OPERATOR_MAP = {
     GTE: gte,
     LT: lt,
     LTE: lte,
+    CONTAINS: contains,
 };
 
 export const SEND_MESSAGE_ENABLED = false;
