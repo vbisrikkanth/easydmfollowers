@@ -68,10 +68,22 @@ class EasyDMCore {
     }
     //---- DM ---- //
 
-    async sendDM({ recipient, text }) {
-        const where = { screen_name: recipient };
-        const user = await findUser(where);
-        return (await this.twitterAdapter.sendDM({ user, text }));
+    async sendDM({ recipients, text }) {
+        try {
+            let users = await this.twitterAdapter.client.post("users/lookup", {
+                screen_name: recipients
+            });
+
+            for(let user of users){
+                await this.twitterAdapter.sendDM({ user, text })
+            }
+
+            return true;
+        } catch (e) {
+            console.log(e);
+            return false;
+        }
+
     }
 
     // --- Campaign ---//

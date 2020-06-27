@@ -55,4 +55,4 @@ export const FILTER_OPERATOR_MAP = {
     I_LIKE: iLike,
 };
 
-export const SEND_MESSAGE_ENABLED = false;
+export const SEND_MESSAGE_ENABLED = true;
