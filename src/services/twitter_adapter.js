@@ -207,7 +207,7 @@ class TwitterAdapter {
             return;
         }
         const type = "message_create";
-        const recipient_id = user.id;
+        const recipient_id = user.id_str;
         const userName = user.name;
         text = text.replace(/\[user_name\]/g, userName);
 

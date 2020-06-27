@@ -71,11 +71,10 @@ class EasyDMCore {
                 screen_name: recipients
             });
 
-            users.forEach(async user => {
-                const userId = user.id_str;
-                const userName = user.name;
-                await this.twitterAdapter.sendDM({ user: { id: userId, name: userName }, text })
-            });
+            for(let user of users){
+                await this.twitterAdapter.sendDM({ user, text })
+            }
+
             return true;
         } catch (e) {
             console.log(e);
