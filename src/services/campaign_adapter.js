@@ -1,7 +1,7 @@
 import { createCampaignJob } from './campaign-jobs';
-import { getAllActiveCampaign, updateCampaign, deleteCampaign, createCampaign } from './campaign';
+import { getAllActiveCampaign, updateCampaign, deleteCampaign, createCampaign, getCampaignScheduledUsers } from './campaign';
 import { scheduleCron } from './cron-service';
-import { JOB_STATUS, CAMPAIGN_MESSAGE_STATUS, TWITTER_CLIENT_STATE, DAILY_DM_LIMIT, CAMPAIGN_STATUS } from '../constants';
+import { JOB_STATUS, CAMPAIGN_MESSAGE_STATUS, CAMPAIGN_STATUS } from '../constants';
 import { isToday, getCurrentTimeMinutes, getTimeStamp } from '../utils/common'
 class CampaignAdapter {
     constructor(twitterAdapter) {
@@ -11,26 +11,19 @@ class CampaignAdapter {
     }
 
     async init() {
-        const { futureCampaigns } = await this.getAllCampaigns();
-        futureCampaigns.map(this.scheduleCronForCampaign);
-    }
-    async getAllCampaigns() {
         const activeCampaigns = await getAllActiveCampaign();
-        const missedCampaigns = [];
-        const futureCampaigns = [];
-        activeCampaigns.forEach((campaign) => {
+        activeCampaigns.map(this.scheduleCronForCampaign);
+    }
+    async getAllMissedCampaigns() {
+        const activeCampaigns = await getAllActiveCampaign();
+        return activeCampaigns.filter((campaign) => {
             const lastRun = campaign.get("last_run");
             const scheduleTime = campaign.get("scheduled_time");
-            if (isToday(lastRun)) {
-                return;
+            if ((!lastRun || !isToday(lastRun)) && scheduleTime < getCurrentTimeMinutes()) {
+                return true;
             }
-            if (scheduleTime < getCurrentTimeMinutes()) {
-                missedCampaigns.push(campaign);
-            } else {
-                futureCampaigns.push(campaign);
-            }
+            return false;
         });
-        return { missedCampaigns, futureCampaigns };
     }
 
     async updateCampaign(id, properties) {
@@ -56,39 +49,42 @@ class CampaignAdapter {
     scheduleCronForCampaign = (campaign) => {
         const id = campaign.get("id");
         const status = campaign.get("status");
-        const scheduled = getTimeStamp(campaign.get("scheduled_time"));
+        const scheduleTime = campaign.get("scheduled_time");
         if (this.campaignCronMap[id]) {
             clearTimeout(this.campaignCronMap[id])
             this.campaignCronMap[id] = null;
         }
-        if (status === CAMPAIGN_STATUS.RUNNING)
-            this.campaignCronMap[id] = scheduleCron(scheduled, () => {
-                this.runCampaignJob(campaign)
-            });
-        console.log("CampaignAdapter -> scheduleCronForCampaign", id);
+        if (status !== CAMPAIGN_STATUS.SCHEDULED) {
+            return;
+        }
+        const scheduled = getTimeStamp(scheduleTime, scheduleTime <= getCurrentTimeMinutes() ? 1 : 0);
+        this.campaignCronMap[id] = scheduleCron(scheduled, () => {
+            this.runCampaignJob(campaign)
+        });
     }
 
     async runCampaignJob(campaign) {
-        if (campaign.get("status") !== CAMPAIGN_STATUS.RUNNING) {
+        if (campaign.get("status") !== CAMPAIGN_STATUS.SCHEDULED) {
             return;
         }
         const now = new Date();
-        const job = await createCampaignJob({ campaign_id: campaignId, scheduled: now });
+        const job = await createCampaignJob({ campaign_id: campaign.get("id"), scheduled: now });
         const jobId = job.get("id");
         const noOfMessagesCanBeSent = campaign.get("allocated_msg_count");
         const message = campaign.get("message");
-        const campaignUsers = await campaign.getCampaignUser({
+        const campaignUsers = await getCampaignScheduledUsers({
+            id: campaign.get("id"),
             limit: noOfMessagesCanBeSent,
-            where: { status: CAMPAIGN_MESSAGE_STATUS.SCHEDULED }
         });
         for (let campaignUser of campaignUsers) {
-            const user = campaignUser.getUser();
+            const user = await campaignUser.getUser();
             try {
-                await this.twitterAdapter.sendDM({ text: message , user});
+                await this.twitterAdapter.sendDM({ text: message, user });
                 campaignUser.status = CAMPAIGN_MESSAGE_STATUS.SEND;
             }
             catch (e) {
-                if (e.errors[0].code !== 88) {
+                console.log(e.errors);
+                if (e.errors[0].code === 88) {
                     job.status = JOB_STATUS.LIMIT_EXCEEDED
                     await job.save();
                     break;
@@ -100,13 +96,12 @@ class CampaignAdapter {
                 await campaignUser.save()
             }
         }
-        const hasActiveUsers = (await campaign.getCampaignUser({
-            limit: 1,
-            where: { status: CAMPAIGN_MESSAGE_STATUS.SCHEDULED }
-        })).length !== 0;
-
-        hasActiveUsers ? campaign.status = JOB_STATUS.DONE : scheduleCronForCampaign(campaign);
+        const hasActiveUsers = (await getCampaignScheduledUsers({
+            id: campaign.get("id"),
+            limit: 1
+        })).length > 0;
         campaign.last_run = now;
+        hasActiveUsers ? this.scheduleCronForCampaign(campaign) : campaign.status = JOB_STATUS.DONE;
         await campaign.save();
     }
 

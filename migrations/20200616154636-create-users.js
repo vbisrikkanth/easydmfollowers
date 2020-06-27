@@ -7,7 +7,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.STRING
       },
-      profile_image_url_https:{
+      profile_image_url_https: {
         type: Sequelize.STRING
       },
       name: {
@@ -57,7 +57,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       },
-      status:  {
+      status: {
         type: Sequelize.INTEGER
       },
     });

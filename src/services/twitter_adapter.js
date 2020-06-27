@@ -2,8 +2,8 @@ import Twitter from 'twitter-lite';
 import { setVariables, getVariables } from './state_variables';
 import { getActiveJob, scheduleNewJob, closeActiveJob } from './follower-job';
 import { scheduleCron } from './cron-service';
-import { bulkCreate, findUnSyncedUsers, findUserId } from './user';
-import { TWITTER_CLIENT_STATE, FOLLOWER_SYNC_STATUS } from '../constants';
+import { bulkCreate, findUnSyncedUsers } from './user';
+import { TWITTER_CLIENT_STATE, FOLLOWER_SYNC_STATUS, SEND_MESSAGE_ENABLED } from '../constants';
 import logger from '../utils/logger';
 class TwitterAdapter {
 
@@ -73,7 +73,7 @@ class TwitterAdapter {
             const followers = await this.client.get("followers/ids", {
                 cursor,
                 count: 5000,
-                //screen_name: "balajis",
+                screen_name: "d3js_org",
                 stringify_ids: true
             });
 
@@ -193,9 +193,6 @@ class TwitterAdapter {
         this.syncFollowersDetail();
     }
 
-    //Called 3 scenarios
-    // 1. First time setup syncFollower(true)
-    // 2. Reopening syncFollower(false)
     syncFollowers = async (force) => {
         if (this.activeCron) {
             return;
@@ -205,6 +202,9 @@ class TwitterAdapter {
     }
 
     sendDM = async ({ user, text }) => {
+        if (!SEND_MESSAGE_ENABLED) {
+            return;
+        }
         const type = "message_create";
         const recipient_id = user.get("id_str");
         const userName = user.get("name");

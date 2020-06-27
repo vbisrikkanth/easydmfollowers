@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     ran_at: DataTypes.DATE
   }, {});
   CampaignJobHistory.associate = function (models) {
-    
+
   };
   return CampaignJobHistory;
 };

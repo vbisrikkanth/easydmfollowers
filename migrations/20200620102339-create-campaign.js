@@ -14,16 +14,19 @@ module.exports = {
       message: {
         type: Sequelize.TEXT
       },
+      metadata: {
+        type: Sequelize.TEXT
+      },
       description: {
         type: Sequelize.STRING
       },
       allocated_msg_count: {
         type: Sequelize.INTEGER
       },
-      scheduled_time:{
+      scheduled_time: {
         type: Sequelize.INTEGER
       },
-      last_run:{
+      last_run: {
         type: Sequelize.DATE
       },
       status: {
