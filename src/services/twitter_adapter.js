@@ -26,6 +26,7 @@ class TwitterAdapter {
             const authResponse = (await client.get("account/verify_credentials"));
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Verified");
             const existingUserID = await getVariable("id_str");
+            console.log(existingUserID, "existingUserID");
             if (existingUserID && existingUserID !== authResponse.id_str) {
                 return { error: 1 }
             }
@@ -59,7 +60,7 @@ class TwitterAdapter {
             };
 
         } catch (e) {
-            // logger.info("TwitterAdapter -> setTwitterKeys -> Error", e)
+            logger.info("TwitterAdapter -> setTwitterKeys -> Error", e)
             this.client = null;
             this.clientState = TWITTER_CLIENT_STATE.TOKEN_FAILED;
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Failed");
@@ -113,8 +114,9 @@ class TwitterAdapter {
             scheduled = new Date(followers._headers.get('x-rate-limit-reset') * 1000);
         }
         catch (e) {
-            logger.info("TwitterAdapter -> syncFollowersId -> errors", e.errors[0].code);
-            if (e.errors[0].code !== 88) { return; }
+            console.log(e.errors)
+            // logger.info("TwitterAdapter -> syncFollowersId -> errors", e.errors[0].code);
+            if (e.errors && e.errors[0].code !== 88) { return; }
             scheduled = new Date((parseInt(e._headers.get('x-rate-limit-reset')) + 45) * 1000);
         }
         logger.info("TwitterAdapter -> syncFollowersId -> scheduleNewJob -> limitReset", scheduled);

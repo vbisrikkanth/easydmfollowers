@@ -27,7 +27,9 @@ export const getLists = async (ids) => {
 
 
 export const updateList = async (id, properties) => {
-    return await db.List.update(properties, { where: { id } });
+    const list = await db.List.findByPk(id);
+    list.update(properties);
+    return await list.save();
 }
 
 export const getAllLists = async () => {

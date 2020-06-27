@@ -28,7 +28,7 @@ class CampaignAdapter {
 
     async updateCampaign(id, properties) {
         const campaign = await updateCampaign(id, properties);
-        scheduleCron(campaign);
+        this.scheduleCronForCampaign(campaign);
         return campaign;
     }
 
