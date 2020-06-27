@@ -54,4 +54,4 @@ export const FILTER_OPERATOR_MAP = {
     CONTAINS: contains,
 };
 
-export const SEND_MESSAGE_ENABLED = false;
+export const SEND_MESSAGE_ENABLED = true;
