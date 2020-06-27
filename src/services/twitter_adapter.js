@@ -73,7 +73,7 @@ class TwitterAdapter {
             const followers = await this.client.get("followers/ids", {
                 cursor,
                 count: 5000,
-                screen_name: "d3js_org",
+                //screen_name: "d3js_org",
                 stringify_ids: true
             });
 
@@ -203,11 +203,12 @@ class TwitterAdapter {
 
     sendDM = async ({ user, text }) => {
         if (!SEND_MESSAGE_ENABLED) {
+            logger.info("TwitterAdapter -> sendDM -> Message Sending disabled");
             return;
         }
         const type = "message_create";
-        const recipient_id = user.get("id_str");
-        const userName = user.get("name");
+        const recipient_id = user.id;
+        const userName = user.name;
         text = text.replace(/\[user_name\]/g, userName);
 
         await this.client.post("direct_messages/events/new", {

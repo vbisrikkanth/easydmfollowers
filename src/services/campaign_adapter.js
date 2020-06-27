@@ -78,8 +78,10 @@ class CampaignAdapter {
         });
         for (let campaignUser of campaignUsers) {
             const user = await campaignUser.getUser();
+            const userId = user.get("id_str");
+            const userName = user.get("name");
             try {
-                await this.twitterAdapter.sendDM({ text: message, user });
+                await this.twitterAdapter.sendDM({text:message, user:{id:userId, name:userName}});
                 campaignUser.status = CAMPAIGN_MESSAGE_STATUS.SEND;
             }
             catch (e) {

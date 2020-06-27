@@ -47,4 +47,4 @@ export const FILTER_OPERATOR_MAP = {
     LTE: lte,
 };
 
-export const SEND_MESSAGE_ENABLED = false;
+export const SEND_MESSAGE_ENABLED = true;

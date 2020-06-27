@@ -62,7 +62,7 @@ async function test5() {
             // ["followers_count", "ASC"],
             ["friends_count", "DESC"]
         ],
-        segmentIds:[1,2]
+        segmentIds: [1, 2]
     });
     console.log(res.length);
 
@@ -71,7 +71,7 @@ async function test4() {
     const newSegment = {
         name: "Segment 2",
         description: "This is a test Segment",
-        filters:filter2
+        filters: filter2
     }
     //const createdSegment = await easyDMCore.createSegment(newSegment);
     //console.log(await easyDMCore.getSegment(createdSegment.id));
@@ -103,36 +103,29 @@ async function test11() {
     let userObject = await easyDMCore.getUserObject();
     if (!userObject) {
         userObject = await easyDMCore.setKeys({
-            consumer_key: "",
-            consumer_secret: "",
-            access_token_key: "",
-            access_token_secret: ""
+            consumer_key: process.env.consumer_key,
+            consumer_secret: process.env.consumer_secret,
+            access_token_key: process.env.access_token_key,
+            access_token_secret: process.env.access_token_secret
         });
 
         if (userObject) {
-            const users = await easyDMCore.getFollowers();
-
-            await users.forEach(async (user) => {
-                const recipient = user.screen_name;
-                const text = "https://valq.com\nHello [user_name]! \n- from Hell Paradise";
-                await easyDMCore.sendDM({ recipient, text });
-            });
+            const recipients = "Srikkanth18,kggopal12,np_hinata";
+            const text = "https://valq.com\nHello [user_name]! \n- from Hell Paradise";
+            console.log( await easyDMCore.sendDM({ recipients, text }) );
         } else {
             console.log("Key authentication failed")
         }
     }
     else {
-        const users = await easyDMCore.getFollowers();
-
-        await users.forEach(async (user) => {
-            const recipient = user.screen_name;
-            const text = "https://valq.com\nHello [user_name]! \n- from Hell Paradise";
-            await easyDMCore.sendDM({ recipient, text });
-        });
+        const recipients = "Srikkanth18,kggopal12,np_hinata";
+        const text = "https://valq.com\nHello [user_name]! \n- from Hell Paradise";
+        console.log( await easyDMCore.sendDM({ recipients, text }) );
     }
 }
-test8();
+// test8();
 // test3();
 // test9();
 // test7();
 // test4();
+test11();
