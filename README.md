@@ -32,7 +32,7 @@
 - [Introduction](#-introduction)
 - [Background](#-background)
 - [Architecture](#-architecture)
-- [Usage](#-usage)
+- [Usage](#%EF%B8%8F-usage)
 - [License](#-license)
 
 ## 🎉 Introduction
@@ -43,7 +43,7 @@ Jupiter Core is available as an NPM package which means you can include it in yo
 
 ## 💡 Background
 
-The inspiration for this library came from the bounty contest [here](https://github.com/balajis/twitter-export) hosted by [@balajiS](https://twitter.com/balajis/status/1272199847324471298?s=08). We built this tool to submit our entry to the bounty contest.
+The inspiration for this library came from the bounty contest [here](https://github.com/balajis/twitter-export) hosted by [@balajiS](https://twitter.com/balajis/status/1272199847324471298?s=08). We built this library to submit our entry to the bounty contest.
 
 ## 🧱 Architecture
 
@@ -62,12 +62,12 @@ __Benefits of this Architecture:__
 ##### Requirements
 Twitter API keys with access permission set to 'Read, write and Direct Messages'. You can register for a twitter developer account [here](https://developer.twitter.com/)
 
-##### Setup
+##### Dev Setup
 1. Clone this repository into your local system 
 2. Perform `npm i`
 3. Copy database file from `./archive/db/jupiter.sqlite` to the root folder
 4. Add Twitter API keys in the placeholders within `test.js` file in the root folder
-5. Run `npm run gulp`
+5. Perform `npm run gulp`
 7. Run `node dist/test.js`
 7. _[Optional]_ run `npx sequelize db:migrate` after initializing a db in sqlite to get the tables and associations mapped into your fresh database
 
