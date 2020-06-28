@@ -5,6 +5,7 @@ import { getCampaignUserPaginated, getAllCampaigns, getCampaign, deleteAllCampai
 import { findAllUsers, findUsersCount, findAllPaginatedUsers, findUser, deleteAllUsers } from './services/user';
 import { createList, updateList, getAllLists, getList, deleteList, deleteAllLists } from './services/list';
 import { deleteAllVariables } from './services/state_variables';
+import { processFilters } from './utils/common';
 
 class EasyDMCore {
     constructor(connectionString) {
@@ -56,7 +57,18 @@ class EasyDMCore {
     }
 
     async getSegments() {
-        return (await getAllLists()).map(list => list.toJSON())
+        const lists = (await getAllLists());
+
+        let segments = [];
+        for( let list of lists ){
+            list = list.toJSON();
+            segments.push({
+                ...list,
+                count: await findUsersCount({where:processFilters(list.filters)})
+            });
+        }
+
+        return segments;
     }
 
     async getSegment(id) {
