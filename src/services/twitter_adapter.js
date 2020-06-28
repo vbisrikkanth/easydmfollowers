@@ -41,7 +41,8 @@ class TwitterAdapter {
                 { property: "profile_image_url_https", value: authResponse.profile_image_url_https },
                 { property: "followers_count", value: authResponse.followers_count },
                 { property: "friends_count", value: authResponse.friends_count },
-                { property: "verified", value: authResponse.verified }
+                { property: "verified", value: authResponse.verified },
+                { property: "statuses_count", value: authResponse.statuses_count }
             ]);
             this.client = client;
             this.clientState = TWITTER_CLIENT_STATE.INITIALIZED;
@@ -65,7 +66,8 @@ class TwitterAdapter {
                 profile_image_url_https: authResponse.profile_image_url_https,
                 followers_count: authResponse.followers_count,
                 verified: authResponse.verified,
-                friends_count: authResponse.friends_count
+                friends_count: authResponse.friends_count,
+                statuses_count: authResponse.statuses_count
             };
 
         } catch (e) {
