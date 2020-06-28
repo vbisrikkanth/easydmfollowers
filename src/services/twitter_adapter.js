@@ -2,7 +2,7 @@ import Twitter from 'twitter-lite';
 import { setVariables, getVariables, getVariable } from './state_variables';
 import { getActiveJob, scheduleNewJob, closeActiveJob } from './follower-job';
 import { scheduleCron } from './cron-service';
-import { bulkCreate, findUnSyncedUsers } from './user';
+import { bulkCreate, findUnSyncedUsers, findUser } from './user';
 import { TWITTER_CLIENT_STATE, FOLLOWER_SYNC_STATUS, SEND_MESSAGE_ENABLED } from '../constants';
 import logger from '../utils/logger';
 class TwitterAdapter {
@@ -13,7 +13,7 @@ class TwitterAdapter {
         this.totalFollowersSynced = 0;
     }
 
-    verifyAndSetTwitterKeys = async ({ consumer_key, consumer_secret, access_token_key, access_token_secret }) => {
+    verifyAndSetTwitterKeys = async ({ consumer_key, consumer_secret, access_token_key, access_token_secret }, reset) => {
         try {
             const client = new Twitter({
                 subdomain: "api", // "api" is the default (change for other subdomains)
@@ -27,7 +27,8 @@ class TwitterAdapter {
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Verified");
             const existingUserID = await getVariable("id_str");
             if (existingUserID && existingUserID !== authResponse.id_str) {
-                return { error: 1 }
+            logger.info("New user key found resetting all tables");
+                await reset();
             }
             await setVariables([
                 { property: "consumer_key", value: consumer_key },
@@ -40,10 +41,20 @@ class TwitterAdapter {
                 { property: "profile_image_url_https", value: authResponse.profile_image_url_https },
                 { property: "followers_count", value: authResponse.followers_count },
                 { property: "friends_count", value: authResponse.friends_count },
-                { property: "verified", value: authResponse.verified }
+                { property: "verified", value: authResponse.verified },
+                { property: "statuses_count", value: authResponse.statuses_count }
             ]);
             this.client = client;
             this.clientState = TWITTER_CLIENT_STATE.INITIALIZED;
+            const isUserExist = await findUser();
+            if (!isUserExist) {
+                logger.info("No user found -> Force Sync Initialized");
+                this.syncFollowers(true);
+            }
+            else {
+                logger.info("Users found -> Restoring existing sync jobs");
+                this.syncFollowers();
+            }
             return {
                 consumer_key,
                 consumer_secret,
@@ -55,23 +66,25 @@ class TwitterAdapter {
                 profile_image_url_https: authResponse.profile_image_url_https,
                 followers_count: authResponse.followers_count,
                 verified: authResponse.verified,
-                friends_count: authResponse.friends_count
+                friends_count: authResponse.friends_count,
+                statuses_count: authResponse.statuses_count
             };
 
         } catch (e) {
-            // logger.info("TwitterAdapter -> setTwitterKeys -> Error", e)
+            logger.info("TwitterAdapter -> setTwitterKeys -> Error", e)
             this.client = null;
             this.clientState = TWITTER_CLIENT_STATE.TOKEN_FAILED;
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Failed");
-            return { error: 2 }
+            return { error: 3 }
         }
     }
 
     getUserObject = async () => {
         const twitterKeys = await getVariables(["consumer_key", "consumer_secret", "access_token_key", "access_token_secret"]);
         if (!twitterKeys.access_token_secret) {
+            logger.info("No twitter key found");
             this.clientState = TWITTER_CLIENT_STATE.NOT_INITIALIZED;
-            return false;
+            return { error: 1 };
         }
         return await this.verifyAndSetTwitterKeys(twitterKeys);
     }
@@ -83,7 +96,6 @@ class TwitterAdapter {
             const followers = await this.client.get("followers/ids", {
                 cursor,
                 count: 5000,
-                //screen_name: "d3js_org",
                 stringify_ids: true
             });
 
@@ -113,8 +125,8 @@ class TwitterAdapter {
             scheduled = new Date(followers._headers.get('x-rate-limit-reset') * 1000);
         }
         catch (e) {
-            logger.info("TwitterAdapter -> syncFollowersId -> errors", e.errors[0].code);
-            if (e.errors[0].code !== 88) { return; }
+            // logger.info("TwitterAdapter -> syncFollowersId -> errors", e.errors[0].code);
+            if (e.errors && e.errors[0].code !== 88) { return; }
             scheduled = new Date((parseInt(e._headers.get('x-rate-limit-reset')) + 45) * 1000);
         }
         logger.info("TwitterAdapter -> syncFollowersId -> scheduleNewJob -> limitReset", scheduled);
@@ -122,9 +134,9 @@ class TwitterAdapter {
         const job = this.getSyncJob(cursor);
         this.activeCron = scheduleCron(scheduled, job);
     }
-    
+
     reset = () => {
-        if(this.activeCron){
+        if (this.activeCron) {
             clearTimeout(this.activeCron);
         }
         this.client = null;

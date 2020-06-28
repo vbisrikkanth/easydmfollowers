@@ -5,22 +5,14 @@ const easyDMCore = new EasyDMCore("jupiter.sqlite");
 
 async function test3() {
     let userObject = await easyDMCore.getUserObject();
-    if (!userObject) {
+    console.log(userObject);
+    if (userObject.error) {
         userObject = await easyDMCore.setKeys({
             consumer_key: process.env.consumer_key,
             consumer_secret: process.env.consumer_secret,
             access_token_key: process.env.access_token_key,
             access_token_secret: process.env.access_token_secret
         });
-
-        if (userObject) {
-            easyDMCore.syncFollowers(true);
-        } else {
-            console.log("Key authentication failed")
-        }
-    }
-    else {
-        easyDMCore.syncFollowers();
     }
 };
 // test3();
@@ -57,6 +49,26 @@ const filter2 = {
         }
     ]
 }
+const filter3 = {
+    filterType: "AND",
+    conditions: [
+        {
+            id: "followers_count",
+            operator: "GT",
+            value: 8000
+        }
+    ]
+}
+const filter4 = {
+    filterType: "AND",
+    conditions: [
+        {
+            id: "location",
+            operator: "CONTAINS",
+            value: "Chennai"
+        }
+    ]
+}
 async function test5() {
     const res = await easyDMCore.getPaginatedFollowers({
         limit: 100, offset: 0, order: [
@@ -70,9 +82,9 @@ async function test5() {
 }
 async function test4() {
     const newSegment = {
-        name: "Segment 1",
+        name: "Segment 3",
         description: "This is a test Segment",
-        filters:filter1
+        filters:filter4
     }
     //const createdSegment = await easyDMCore.createSegment(newSegment);
     //console.log(await easyDMCore.getSegment(createdSegment.id));
@@ -88,14 +100,16 @@ async function test8() {
         message: "Hi [user_name], Check out the link",
         allocated_msg_count: 500,
         description: "For segment 1 and 2",
-        scheduled_time: 834,
-        segmentIds:[]
+        scheduled_time: 984,
+        segmentIds:[1,2]
     })));
 }
 // test8();
 async function test9() {
     // console.log(await easyDMCore.getAllCampaigns())
-    console.log((await easyDMCore.getCampaignUserPaginated({ id: 6})).count);
+    // console.log(await easyDMCore.updateCampaign(1,{status: 50}))
+    // console.log((await easyDMCore.getCampaignUserPaginated({ id: 6})).count);
+    console.log(await easyDMCore.getCampaignStatus({ id: 6}));
 }
 // test9();
 async function test10() {
@@ -128,11 +142,13 @@ async function test11() {
 }
 
 async function test12() {
-    // console.log(await easyDMCore.deleteCampaign(5));
-    console.log(await easyDMCore.reset());
+    // console.log(await easyDMCore.getSegments());
+//     // console.log(await easyDMCore.deleteCampaign(5));
+//     console.log(await easyDMCore.reset());
+    console.log(await easyDMCore.getCampaignStatus({id:2}));
 }
-
 test12();
+// test12();
 // test12();
 // test3();
 // test9();
