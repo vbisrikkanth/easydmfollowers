@@ -1,10 +1,11 @@
 <h1 align="center">
-    Jupiter GUI (EasyDMFollowers-UI)
+    Jupiter Core (EasyDMFollowers)
 </h1>
 
 <p align="center">
-  <a href="https://github.com/lelouch77/edmf-ui-v2/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Jupiter GUI is released under the MIT license." /></a>
-  <a href="https://github.com/lelouch77/edmf-ui-v2/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome!" /></a>
+  <a href="https://github.com/vbisrikkanth/easydmfollowers/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Jupiter Core is released under the MIT license." /></a>
+  <a href="https://badge.fury.io/js/edmf-core"><img src="https://badge.fury.io/js/edmf-core.svg" alt="npm version"></a>
+  <a href="https://github.com/vbisrikkanth/easydmfollowers/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome!" /></a>
   <a href="https://twitter.com/intent/follow?screen_name=jupiter_edmf"><img src="https://img.shields.io/twitter/follow/jupiter_edmf.svg?label=Follow%20@jupiter_edmf" alt="Follow @jupiter_edmf" /></a>
 </p>
 
@@ -31,52 +32,51 @@
 - [Introduction](#-introduction)
 - [Background](#-background)
 - [Architecture](#-architecture)
-- [Features](#-features)
 - [Usage](#%EF%B8%8F-usage)
 - [License](#-license)
 
 ## 🎉 Introduction
 
-**Jupiter GUI (EasyDMFollowers-UI)** is an electron application built for both Windows and MacOS. This application primarily fetches a list of your followers and provides features to send Mass DMs to them.
+__Jupiter Core (EasyDMFollowers)__ is a set of library functions that can be used to fetch a list your followers from Twitter using [Twitter API](https://developer.twitter.com/en), segment them into lists based on their popularity (followers count, tweets count, location, etc) and send targeted Mass DMs to them by creating and tracking campaigns. 
+
+Jupiter Core is available as an NPM package which means you can include it in your app built for any platform or web app.
 
 ## 💡 Background
 
-The inspiration for this application came from the bounty contest [here](https://github.com/balajis/twitter-export) hosted by [@balajiS](https://twitter.com/balajis/status/1272199847324471298?s=08). We built this library to submit our entry to the bounty contest.
+The inspiration for this library came from the bounty contest [here](https://github.com/balajis/twitter-export) hosted by [@balajiS](https://twitter.com/balajis/status/1272199847324471298?s=08). We built this library to submit our entry to the bounty contest.
 
 ## 🧱 Architecture
 
-![Jupiter Core and UI Architecture](architecture.png?raw=true 'Jupiter Core and UI Architecture')
+![Jupiter Core and UI Architecture](architecture.png?raw=true "Jupiter Core and UI Architecture")
 
-A decoupled architecture where we have an adapter for a given social media platform (Twitter) and connection to external databases through Sequelize ORM enables us to have flexibility with the DB engine used.
+A decoupled architecture where we have an adapter for a given social media platform (Twitter) and connection to external databases through Sequelize ORM enables us to have flexibility with the DB engine used. 
 
-## 💎 Features
+__Benefits of this Architecture:__
+- Any database supported by Sequelize can be used
+- Adapters for other social media platforms can be easily developed
+- This library shared as an NPM package can be imported to build a native Windows/MacOS app or can be extended into a server with Express or Hapi to be further used by front-end webapps built on React, Angular, etc.
 
-Jupiter GUI comes packed with the following features:
-
-- Fetch **Followers** from Twitter (75000 followers/15 minutes)
-- Create **Segments**(lists) of followers based on filter criteria (Filter followers with >= 5000 followers or >= 200 tweets)
-- **Segments** can have multiple `AND` or `OR` based filters
-- Create (Mass DM) **Campaigns** on selected segments with ranking by followers count, friends count, tweets and retweets.
-- Set weights (Number of messages to be sent in a day) for each Campaign
-- Schedule your Campaign to send MassDMs at a specific time everyday
-- Pause and Resume Campaigns
-- Send test DMs to upto 5 users from the Campaign settings before the Campaign kicks off
-- Track statistics like number of DMs sent from the app Dashboard
 
 ## ⚙️ Usage
 
 ##### Requirements
-
 Twitter API keys with access permission set to 'Read, write and Direct Messages'. You can register for a twitter developer account [here](https://developer.twitter.com/)
 
 ##### Dev Setup
+1. Clone this repository into your local system 
+2. Perform `npm i`
+3. Copy database file from `./archive/db/jupiter.sqlite` to the root folder
+4. Add Twitter API keys in the placeholders within `test.js` file in the root folder
+5. Perform `npm run gulp`
+7. Run `node dist/test.js`
+7. _[Optional]_ run `npx sequelize db:migrate` after initializing a db in sqlite to get the tables and associations mapped into your fresh database
 
-Since this is an electron app, native build tools for Windows and/or MacOS and `yarn` are prerequisites for compiling and running the dev app.
+##### Where to get started?
 
-1. Clone this repository into your local system
-2. Perform `yarn install` in the root directory and in the `app` directory to install `electron` dependencies
-3. Run `yarn dev`
+The [test.js](src/test.js) file in the `src` folder contains test cases for all the methods exposed in the library. To look further into how the methods are defined you can look into the [index.js](src/index.js) file in the same folder.
+
+Alternatively, you can clone our Jupiter GUI application from its repository [here](https://github.com/lelouch77/edmf-ui-v2) and follow the setup process and test the app. Jupiter Core will be included by default as a package dependency in the GUI app.
 
 ## 📄 License
 
-**Jupiter GUI** is MIT Licensed, as found in the [LICENSE](blob/master/LICENSE) file.
+__Jupiter Core__ is MIT Licensed, as found in the [LICENSE](blob/master/LICENSE) file.
