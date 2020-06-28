@@ -8,8 +8,22 @@ import { processFilters } from '../utils/common';
 export const getCampaign = async (id) => {
     return await db.Campaign.findByPk(id);
 }
+export const getCampaignStatus = async (where) => {
+    if(where && where.id){
+        where.campaign_id = where.id;
+        delete where.id;
+    }
+    return await db.CampaignUser.findAll({
+        group: ['status'],
+        attributes: ['status', [db.sequelize.fn('COUNT', 'id'), 'status_count']],
+        where
+    });
+}
+
 export const updateCampaign = async (id, properties) => {
-    return await db.Campaign.update(properties, { where: { id } });
+    const campaign = await db.Campaign.findByPk(id);
+    campaign.update(properties);
+    return await campaign.save();
 }
 export const deleteCampaign = async (campaign_id) => {
     const campaign = await db.Campaign.findByPk(campaign_id);

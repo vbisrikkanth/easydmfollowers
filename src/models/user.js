@@ -19,7 +19,6 @@ module.exports = (sequelize, DataTypes) => {
     listed_count: DataTypes.INTEGER,
     favourites_count: DataTypes.INTEGER,
     statuses_count: DataTypes.INTEGER,
-    statuses_count: DataTypes.INTEGER,
     default_profile: DataTypes.BOOLEAN,
     default_profile_image: DataTypes.BOOLEAN,
     status: DataTypes.INTEGER

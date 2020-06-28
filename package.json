@@ -1,10 +1,10 @@
 {
   "name": "edmf-core",
-  "version": "1.1.22",
+  "version": "1.1.32",
   "description": "Easy DM Followers Core",
   "main": "dist/index.js",
   "scripts": {
-    "start": "gulp watch",
+    "start": "gulp build && gulp watch",
     "gulp": "gulp build",
     "prepublishOnly": "gulp build",
     "test": "echo \"Error: no test specified\" && exit 1"
