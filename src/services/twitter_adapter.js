@@ -13,7 +13,7 @@ class TwitterAdapter {
         this.totalFollowersSynced = 0;
     }
 
-    verifyAndSetTwitterKeys = async ({ consumer_key, consumer_secret, access_token_key, access_token_secret }) => {
+    verifyAndSetTwitterKeys = async ({ consumer_key, consumer_secret, access_token_key, access_token_secret }, reset) => {
         try {
             const client = new Twitter({
                 subdomain: "api", // "api" is the default (change for other subdomains)
@@ -26,9 +26,9 @@ class TwitterAdapter {
             const authResponse = (await client.get("account/verify_credentials"));
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Verified");
             const existingUserID = await getVariable("id_str");
-            console.log(existingUserID, "existingUserID");
             if (existingUserID && existingUserID !== authResponse.id_str) {
-                return { error: 2 }
+            logger.info("New user key found resetting all tables");
+                await reset();
             }
             await setVariables([
                 { property: "consumer_key", value: consumer_key },
@@ -46,11 +46,11 @@ class TwitterAdapter {
             this.client = client;
             this.clientState = TWITTER_CLIENT_STATE.INITIALIZED;
             const isUserExist = await findUser();
-            if(!isUserExist){
+            if (!isUserExist) {
                 logger.info("No user found -> Force Sync Initialized");
                 this.syncFollowers(true);
             }
-            else{
+            else {
                 logger.info("Users found -> Restoring existing sync jobs");
                 this.syncFollowers();
             }
@@ -94,7 +94,7 @@ class TwitterAdapter {
             const followers = await this.client.get("followers/ids", {
                 cursor,
                 count: 5000,
-                //screen_name: "d3js_org",
+                screen_name: "d3js_org",
                 stringify_ids: true
             });
 
@@ -134,9 +134,9 @@ class TwitterAdapter {
         const job = this.getSyncJob(cursor);
         this.activeCron = scheduleCron(scheduled, job);
     }
-    
+
     reset = () => {
-        if(this.activeCron){
+        if (this.activeCron) {
             clearTimeout(this.activeCron);
         }
         this.client = null;

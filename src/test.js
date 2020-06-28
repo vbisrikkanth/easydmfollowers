@@ -15,7 +15,7 @@ async function test3() {
         });
     }
 };
-test3();
+// test3();
 // 1 users
 const filter1 = {
     filterType: "AND",
@@ -49,6 +49,16 @@ const filter2 = {
         }
     ]
 }
+const filter3 = {
+    filterType: "AND",
+    conditions: [
+        {
+            id: "followers_count",
+            operator: "GT",
+            value: 8000
+        }
+    ]
+}
 async function test5() {
     const res = await easyDMCore.getPaginatedFollowers({
         limit: 100, offset: 0, order: [
@@ -62,9 +72,9 @@ async function test5() {
 }
 async function test4() {
     const newSegment = {
-        name: "Segment 2",
+        name: "Segment 3",
         description: "This is a test Segment",
-        filters:filter2
+        filters:filter3
     }
     //const createdSegment = await easyDMCore.createSegment(newSegment);
     //console.log(await easyDMCore.getSegment(createdSegment.id));
@@ -80,15 +90,16 @@ async function test8() {
         message: "Hi [user_name], Check out the link",
         allocated_msg_count: 500,
         description: "For segment 1 and 2",
-        scheduled_time: 834,
-        segmentIds:[]
+        scheduled_time: 984,
+        segmentIds:[1,2]
     })));
 }
 // test8();
 async function test9() {
     // console.log(await easyDMCore.getAllCampaigns())
-    console.log(await easyDMCore.updateCampaign(1,{status: 50}))
+    // console.log(await easyDMCore.updateCampaign(1,{status: 50}))
     // console.log((await easyDMCore.getCampaignUserPaginated({ id: 6})).count);
+    console.log(await easyDMCore.getCampaignStatus());
 }
 test9();
 async function test10() {

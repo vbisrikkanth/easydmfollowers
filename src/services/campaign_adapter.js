@@ -91,6 +91,7 @@ class CampaignAdapter {
             catch (e) {
                 if (e.errors[0].code === 88) {
                     job.status = CAMPAIGN_MESSAGE_STATUS.LIMIT_EXCEEDED
+                    await job.save();
                     break;
                 }
                 campaignUser.status = CAMPAIGN_MESSAGE_STATUS.FAILED;

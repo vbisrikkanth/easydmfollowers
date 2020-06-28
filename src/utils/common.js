@@ -1,13 +1,14 @@
+import { between } from 'sequelize/lib/operators';
 import { FILTER_OPERATOR_MAP } from '../constants';
 export const getCurrentTimeMinutes = () => {
     const now = new Date();
     return (now.getHours() * 60) + now.getMinutes();
 }
 
-export const getTimeStamp = (minutes,dayOffset = 0) => {
+export const getTimeStamp = (minutes, dayOffset = 0) => {
     const date = new Date();
     date.setHours(Math.floor(minutes / 60), minutes % 60, 0);
-    if(dayOffset){
+    if (dayOffset) {
         const currentDate = date.getDate();
         date.setDate(currentDate + dayOffset);
     }
@@ -37,4 +38,12 @@ export const processFilters = ({ filterType, conditions }) => {
     });
     return { [filterType]: conditionsMap }
 
+}
+
+export const stillNowTimeFilter = () => {
+    const _12AMTime = new Date();
+    _12AMTime.setHours(0, 0, 0);
+    return {
+        [between]: [_12AMTime, new Date()]
+    }
 }

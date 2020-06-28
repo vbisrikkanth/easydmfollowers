@@ -1,11 +1,12 @@
 import { initDB } from './models'
 import TwitterAdapter from './services/twitter_adapter';
 import CampaignAdapter from './services/campaign_adapter';
-import { getCampaignUserPaginated, getAllCampaigns, getCampaign, deleteAllCampaigns } from './services/campaign';
-import { findAllUsers, findUsersCount, findAllPaginatedUsers, findUser, deleteAllUsers } from './services/user';
+import { getCampaignUserPaginated, getAllCampaigns, getCampaign, deleteAllCampaigns, getCampaignStatus } from './services/campaign';
+import { findAllUsers, findUsersCount, findAllPaginatedUsers, deleteAllUsers } from './services/user';
 import { createList, updateList, getAllLists, getList, deleteList, deleteAllLists } from './services/list';
 import { deleteAllVariables } from './services/state_variables';
-
+import { CAMPAIGN_MESSAGE_STATUS } from './constants';
+import { stillNowTimeFilter } from './utils/common'
 class EasyDMCore {
     constructor(connectionString) {
         this.connectionString = connectionString;
@@ -25,7 +26,7 @@ class EasyDMCore {
     }
 
     async setKeys(twitterKey) {
-        return await this.twitterAdapter.verifyAndSetTwitterKeys(twitterKey);
+        return await this.twitterAdapter.verifyAndSetTwitterKeys(twitterKey, this.reset);
     }
 
     //---- Followers ---- //
@@ -74,7 +75,7 @@ class EasyDMCore {
                 screen_name: recipients
             });
 
-            for(let user of users){
+            for (let user of users) {
                 await this.twitterAdapter.sendDM({ user, text })
             }
 
@@ -107,9 +108,27 @@ class EasyDMCore {
         return (await getCampaign(id)).toJSON();
     }
 
+    async getCampaignStatus(where) {
+        return (await getCampaignStatus(where)).reduce((map, record) => {
+            const status = record.get("status");
+            const count = record.get("status_count");
+            if (!status) {
+                map.UN_SEND = count;
+            }
+            else if (status == CAMPAIGN_MESSAGE_STATUS.SEND) {
+                map.SENT = count
+            }
+            else if (status === CAMPAIGN_MESSAGE_STATUS.FAILED) {
+                map.FAILED = count
+            }
+            return map;
+        }, {});
+    }
+
+
 
     async getCampaignUserPaginated(params) {
-        const result =  await getCampaignUserPaginated(params);
+        const result = await getCampaignUserPaginated(params);
         result.rows = result.rows.map((campaignUser => {
             campaignUser = campaignUser.toJSON();
             const user = campaignUser.User;
@@ -120,13 +139,13 @@ class EasyDMCore {
             }
         }));
         return result;
-        
+
     }
     async getAllMissedCampaigns() {
         return (await this.campaignAdapter.getAllMissedCampaigns()).map(campaign => campaign.toJSON());
     }
 
-    async reset(){
+    async reset() {
         this.campaignAdapter.reset();
         await deleteAllCampaigns();
         await deleteAllLists();
