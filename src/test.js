@@ -62,9 +62,9 @@ async function test5() {
 }
 async function test4() {
     const newSegment = {
-        name: "Segment 1",
+        name: "Segment 2",
         description: "This is a test Segment",
-        filters:filter1
+        filters:filter2
     }
     //const createdSegment = await easyDMCore.createSegment(newSegment);
     //console.log(await easyDMCore.getSegment(createdSegment.id));
@@ -87,9 +87,10 @@ async function test8() {
 // test8();
 async function test9() {
     // console.log(await easyDMCore.getAllCampaigns())
-    console.log((await easyDMCore.getCampaignUserPaginated({ id: 6})).count);
+    console.log(await easyDMCore.updateCampaign(1,{status: 50}))
+    // console.log((await easyDMCore.getCampaignUserPaginated({ id: 6})).count);
 }
-// test9();
+test9();
 async function test10() {
     console.log(await easyDMCore.getFollowersCount(), "Count");
 }
@@ -119,12 +120,12 @@ async function test11() {
     }
 }
 
-async function test12() {
-    // console.log(await easyDMCore.deleteCampaign(5));
-    console.log(await easyDMCore.reset());
-}
+// async function test12() {
+//     // console.log(await easyDMCore.deleteCampaign(5));
+//     console.log(await easyDMCore.reset());
+// }
 
-test12();
+// test12();
 // test12();
 // test3();
 // test9();

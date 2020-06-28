@@ -9,7 +9,7 @@ export const setVariable = async (property, value) => {
 
 export const getVariable = async (property) => {
     const result = await db.StateVariable.findByPk(property);
-    return result.get("value");
+    return result ? result.get("value") : null;
 }
 
 export const setVariables = async (variables) => {

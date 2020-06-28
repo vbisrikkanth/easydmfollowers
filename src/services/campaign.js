@@ -9,7 +9,9 @@ export const getCampaign = async (id) => {
     return await db.Campaign.findByPk(id);
 }
 export const updateCampaign = async (id, properties) => {
-    return await db.Campaign.update(properties, { where: { id } });
+    const campaign = await db.Campaign.findByPk(id);
+    campaign.update(properties);
+    return await campaign.save();
 }
 export const deleteCampaign = async (campaign_id) => {
     const campaign = await db.Campaign.findByPk(campaign_id);
