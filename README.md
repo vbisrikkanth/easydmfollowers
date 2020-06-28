@@ -3,16 +3,10 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/vbisrikkanth/easydmfollowers/blob/master/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Jupiter Core is released under the MIT license." />
-  </a>
+  <a href="https://github.com/vbisrikkanth/easydmfollowers/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Jupiter Core is released under the MIT license." /></a>
   <a href="https://badge.fury.io/js/edmf-core"><img src="https://badge.fury.io/js/edmf-core.svg" alt="npm version"></a>
-  <a href="https://github.com/vbisrikkanth/easydmfollowers/pulls">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome!" />
-  </a>
-  <a href="https://twitter.com/intent/follow?screen_name=jupiter_edmf">
-    <img src="https://img.shields.io/twitter/follow/jupiter_edmf.svg?label=Follow%20@jupiter_edmf" alt="Follow @jupiter_edmf" />
-  </a>
+  <a href="https://github.com/vbisrikkanth/easydmfollowers/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome!" /></a>
+  <a href="https://twitter.com/intent/follow?screen_name=jupiter_edmf"><img src="https://img.shields.io/twitter/follow/jupiter_edmf.svg?label=Follow%20@jupiter_edmf" alt="Follow @jupiter_edmf" /></a>
 </p>
 
 <h4 align="center">
@@ -35,10 +29,9 @@
 
 ## Contents
 
-- [Introduction](#-intro)
+- [Introduction](#-introduction)
 - [Background](#-background)
 - [Architecture](#-architecture)
-- [Dev Setup](#-dev-setup)
 - [Usage](#-usage)
 - [License](#-license)
 
@@ -69,18 +62,21 @@ __Benefits of this Architecture:__
 ##### Requirements
 Twitter API keys with access permission set to 'Read, write and Direct Messages'. You can register for a twitter developer account [here](https://developer.twitter.com/)
 
-#####  Dev Setup
-1. Perform `npm i`
-2. Copy database file from `./archive/db/jupiter.sqlite` to the root folder
-3. Add Twitter API keys in the placeholders within `test.js` file in the root folder
-4. Run `npm run gulp`
-5. Run `node dist/test.js`
-6. _[Optional]_ run `npx sequelize db:migrate` after initializing a db in sqlite to get the tables and associations mapped into your fresh database
+##### Setup
+1. Clone this repository into your local system 
+2. Perform `npm i`
+3. Copy database file from `./archive/db/jupiter.sqlite` to the root folder
+4. Add Twitter API keys in the placeholders within `test.js` file in the root folder
+5. Run `npm run gulp`
+7. Run `node dist/test.js`
+7. _[Optional]_ run `npx sequelize db:migrate` after initializing a db in sqlite to get the tables and associations mapped into your fresh database
 
 ##### Where to get started?
 
 The [test.js](src/test.js) file in the `src` folder contains test cases for all the methods exposed in the library. To look further into how the methods are defined you can look into the [index.js](src/index.js) file in the same folder.
 
+Alternatively, you can clone our Jupiter GUI application from its repository [here](https://github.com/lelouch77/edmf-ui-v2) and follow the setup process and test the app. Jupiter Core will be included by default as a package dependency in the GUI app.
+
 ## 📄 License
 
-__Jupiter Core__ is MIT Licensed, as found in the [LICENSE](https://github.com/vbisrikkanth/easydmfollowers/blob/master/LICENSE) file.
+__Jupiter Core__ is MIT Licensed, as found in the [LICENSE](blob/master/LICENSE) file.
