@@ -94,7 +94,6 @@ class TwitterAdapter {
             const followers = await this.client.get("followers/ids", {
                 cursor,
                 count: 5000,
-                screen_name: "d3js_org",
                 stringify_ids: true
             });
 
@@ -124,7 +123,6 @@ class TwitterAdapter {
             scheduled = new Date(followers._headers.get('x-rate-limit-reset') * 1000);
         }
         catch (e) {
-            console.log(e.errors)
             // logger.info("TwitterAdapter -> syncFollowersId -> errors", e.errors[0].code);
             if (e.errors && e.errors[0].code !== 88) { return; }
             scheduled = new Date((parseInt(e._headers.get('x-rate-limit-reset')) + 45) * 1000);

@@ -1,4 +1,4 @@
-import { and, or, gt, gte, lt, lte, eq, contains, iLike } from 'sequelize/lib/operators';
+import { and, or, gt, gte, lt, lte, eq, substring } from 'sequelize/lib/operators';
 export const FOLLOWER_SYNC_STATUS = {
     NOT_SYNCED: 10,
     FAILED: 30,
@@ -51,8 +51,7 @@ export const FILTER_OPERATOR_MAP = {
     GTE: gte,
     LT: lt,
     LTE: lte,
-    CONTAINS: contains,
-    I_LIKE: iLike,
+    CONTAINS: substring
 };
 
-export const SEND_MESSAGE_ENABLED = false;
+export const SEND_MESSAGE_ENABLED = true;

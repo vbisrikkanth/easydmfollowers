@@ -59,6 +59,16 @@ const filter3 = {
         }
     ]
 }
+const filter4 = {
+    filterType: "AND",
+    conditions: [
+        {
+            id: "location",
+            operator: "CONTAINS",
+            value: "Chennai"
+        }
+    ]
+}
 async function test5() {
     const res = await easyDMCore.getPaginatedFollowers({
         limit: 100, offset: 0, order: [
@@ -74,7 +84,7 @@ async function test4() {
     const newSegment = {
         name: "Segment 3",
         description: "This is a test Segment",
-        filters:filter3
+        filters:filter4
     }
     //const createdSegment = await easyDMCore.createSegment(newSegment);
     //console.log(await easyDMCore.getSegment(createdSegment.id));
@@ -99,9 +109,9 @@ async function test9() {
     // console.log(await easyDMCore.getAllCampaigns())
     // console.log(await easyDMCore.updateCampaign(1,{status: 50}))
     // console.log((await easyDMCore.getCampaignUserPaginated({ id: 6})).count);
-    console.log(await easyDMCore.getCampaignStatus());
+    console.log(await easyDMCore.getCampaignStatus({ id: 6}));
 }
-test9();
+// test9();
 async function test10() {
     console.log(await easyDMCore.getFollowersCount(), "Count");
 }
@@ -131,11 +141,13 @@ async function test11() {
     }
 }
 
-// async function test12() {
+async function test12() {
+    // console.log(await easyDMCore.getSegments());
 //     // console.log(await easyDMCore.deleteCampaign(5));
 //     console.log(await easyDMCore.reset());
-// }
-
+    console.log(await easyDMCore.getCampaignStatus({id:2}));
+}
+test12();
 // test12();
 // test12();
 // test3();

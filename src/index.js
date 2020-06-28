@@ -53,7 +53,7 @@ class EasyDMCore {
         return (await createList({ name, description, filters })).toJSON();
     }
 
-    async updateSegment({ id, properties }) {
+    async updateSegment( id, properties ) {
         return (await updateList(id, properties)).toJSON();
     }
 
@@ -93,7 +93,6 @@ class EasyDMCore {
 
             return true;
         } catch (e) {
-            console.log(e);
             return false;
         }
 
@@ -121,20 +120,36 @@ class EasyDMCore {
     }
 
     async getCampaignStatus(where) {
-        return (await getCampaignStatus(where)).reduce((map, record) => {
+        let total = 0
+        const map = (await getCampaignStatus(where)).reduce((map, record) => {
             const status = record.get("status");
             const count = record.get("status_count");
+            total = total + count;
             if (!status) {
-                map.UN_SEND = count;
+                map.UNSEND = count;
             }
-            else if (status == CAMPAIGN_MESSAGE_STATUS.SEND) {
+            else if (status === CAMPAIGN_MESSAGE_STATUS.SEND) {
                 map.SENT = count
             }
             else if (status === CAMPAIGN_MESSAGE_STATUS.FAILED) {
                 map.FAILED = count
             }
             return map;
-        }, {});
+        }, {
+            UNSEND : 0,
+            SENT: 0,
+            FAILED: 0
+        });
+        map.TOTAL = total;
+        return map;
+    }
+
+    async messagesSentToday() {
+        const res = await getCampaignStatus({ UpdatedAt: stillNowTimeFilter(), status: CAMPAIGN_MESSAGE_STATUS.SEND });
+        if (!res[0]) {
+            return 0;
+        }
+        return res[0].get("status_count");
     }
 
 
