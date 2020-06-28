@@ -2,7 +2,7 @@ import Twitter from 'twitter-lite';
 import { setVariables, getVariables, getVariable } from './state_variables';
 import { getActiveJob, scheduleNewJob, closeActiveJob } from './follower-job';
 import { scheduleCron } from './cron-service';
-import { bulkCreate, findUnSyncedUsers } from './user';
+import { bulkCreate, findUnSyncedUsers, findUser } from './user';
 import { TWITTER_CLIENT_STATE, FOLLOWER_SYNC_STATUS, SEND_MESSAGE_ENABLED } from '../constants';
 import logger from '../utils/logger';
 class TwitterAdapter {
@@ -27,7 +27,7 @@ class TwitterAdapter {
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Verified");
             const existingUserID = await getVariable("id_str");
             if (existingUserID && existingUserID !== authResponse.id_str) {
-                return { error: 1 }
+                return { error: 2 }
             }
             await setVariables([
                 { property: "consumer_key", value: consumer_key },
@@ -44,6 +44,15 @@ class TwitterAdapter {
             ]);
             this.client = client;
             this.clientState = TWITTER_CLIENT_STATE.INITIALIZED;
+            const isUserExist = await findUser();
+            if(!isUserExist){
+                logger.info("No user found -> Force Sync Initialized");
+                this.syncFollowers(true);
+            }
+            else{
+                logger.info("Users found -> Restoring existing sync jobs");
+                this.syncFollowers();
+            }
             return {
                 consumer_key,
                 consumer_secret,
@@ -59,19 +68,20 @@ class TwitterAdapter {
             };
 
         } catch (e) {
-            // logger.info("TwitterAdapter -> setTwitterKeys -> Error", e)
+            logger.info("TwitterAdapter -> setTwitterKeys -> Error", e)
             this.client = null;
             this.clientState = TWITTER_CLIENT_STATE.TOKEN_FAILED;
             logger.info("TwitterAdapter -> setTwitterKeys -> Credentials Failed");
-            return { error: 2 }
+            return { error: 3 }
         }
     }
 
     getUserObject = async () => {
         const twitterKeys = await getVariables(["consumer_key", "consumer_secret", "access_token_key", "access_token_secret"]);
         if (!twitterKeys.access_token_secret) {
+            logger.info("No twitter key found");
             this.clientState = TWITTER_CLIENT_STATE.NOT_INITIALIZED;
-            return false;
+            return { error: 1 };
         }
         return await this.verifyAndSetTwitterKeys(twitterKeys);
     }

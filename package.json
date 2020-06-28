@@ -4,7 +4,7 @@
   "description": "Easy DM Followers Core",
   "main": "dist/index.js",
   "scripts": {
-    "start": "gulp watch",
+    "start": "gulp build && gulp watch",
     "gulp": "gulp build",
     "prepublishOnly": "gulp build",
     "test": "echo \"Error: no test specified\" && exit 1"

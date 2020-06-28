@@ -5,25 +5,17 @@ const easyDMCore = new EasyDMCore("jupiter.sqlite");
 
 async function test3() {
     let userObject = await easyDMCore.getUserObject();
-    if (!userObject) {
+    console.log(userObject);
+    if (userObject.error) {
         userObject = await easyDMCore.setKeys({
             consumer_key: process.env.consumer_key,
             consumer_secret: process.env.consumer_secret,
             access_token_key: process.env.access_token_key,
             access_token_secret: process.env.access_token_secret
         });
-
-        if (userObject) {
-            easyDMCore.syncFollowers(true);
-        } else {
-            console.log("Key authentication failed")
-        }
-    }
-    else {
-        easyDMCore.syncFollowers();
     }
 };
-// test3();
+test3();
 // 1 users
 const filter1 = {
     filterType: "AND",
